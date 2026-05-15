@@ -36,7 +36,26 @@ struct dinode {
   short nlink;          // Number of links to inode in file system
   uint size;            // Size of file (bytes)
   uint addrs[NDIRECT+1];   // Data block addresses
+
+  // === NEW SECURITY FIELDS ===
+  // WHY uint: consistent with RISC-V ABI, avoids alignment issues
+  uint  mode;           // Permission bits: 0777 style (rwxrwxrwx)
+                        // Bits 8-6: owner, 5-3: group, 2-0: other
+  uint  uid;            // Owning user ID
+  uint  gid;            // Owning group ID
+  char  pad[52];        // Pad to 128 bytes to satisfy BSIZE % sizeof(struct dinode) == 0
 };
+
+// Permission bit macros — UNIX standard
+#define S_IRUSR  0400   // Owner read
+#define S_IWUSR  0200   // Owner write
+#define S_IXUSR  0100   // Owner execute
+#define S_IRGRP  0040   // Group read
+#define S_IWGRP  0020   // Group write
+#define S_IXGRP  0010   // Group execute
+#define S_IROTH  0004   // Other read
+#define S_IWOTH  0002   // Other write
+#define S_IXOTH  0001   // Other execute
 
 // Inodes per block.
 #define IPB           (BSIZE / sizeof(struct dinode))

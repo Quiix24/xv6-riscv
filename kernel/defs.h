@@ -33,6 +33,7 @@ void            fileinit(void);
 int             fileread(struct file*, uint64, int n);
 int             filestat(struct file*, uint64 addr);
 int             filewrite(struct file*, uint64, int n);
+int             check_permission(struct inode*, int, int, int);
 
 // fs.c
 void            fsinit(int);
@@ -48,6 +49,7 @@ void            iunlockput(struct inode*);
 void            iupdate(struct inode*);
 int             namecmp(const char*, const char*);
 struct inode*   namei(char*);
+void            fsinit_security(void);
 struct inode*   nameiparent(char*, char*);
 int             readi(struct inode*, int, uint64, uint, uint);
 void            stati(struct inode*, struct stat*);
@@ -129,9 +131,9 @@ int             strncmp(const char*, const char*, uint);
 char*           strncpy(char*, const char*, int);
 
 // syscall.c
-void            argint(int, int*);
+int             argint(int, int*);
 int             argstr(int, char*, int);
-void            argaddr(int, uint64 *);
+int             argaddr(int, uint64 *);
 int             fetchstr(uint64, char*, int);
 int             fetchaddr(uint64, uint64*);
 void            syscall();
@@ -180,6 +182,18 @@ void            plic_complete(int);
 void            virtio_disk_init(void);
 void            virtio_disk_rw(struct buf *, int);
 void            virtio_disk_intr(void);
+
+// auth.c
+void            auth_init(void);
+int             auth_verify(const char*, const char*);
+int             auth_add_user(const char*, const char*, int, int);
+int             auth_del_user(const char*);
+void            hash_password(const char*, char*);
+
+// audit.c
+void            audit_init(void);
+void            audit_log_event(int, int, int, const char*);
+uint64          sys_audit_read(void);
 
 // number of elements in fixed-size array
 #define NELEM(x) (sizeof(x)/sizeof((x)[0]))

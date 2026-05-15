@@ -1,3 +1,41 @@
+// kernel/proc.h — Modified for CCY4304 Project 12 (Phase 1)
+// Changes from original xv6:
+//   1. Added role definitions (ROLE_ADMIN, ROLE_PATIENT, ROLE_DOCTOR)
+//   2. Added struct proc_creds
+//   3. Added creds + stack_canary fields to struct proc
+// All other structs (context, cpu, trapframe, procstate) are UNCHANGED.
+
+// ================================================================
+// SECURITY ADDITIONS — Phase 1: User Authentication
+// ================================================================
+
+// Role definitions — matches course rubric exactly
+#define ROLE_ADMIN    0   // Full system access
+#define ROLE_PATIENT  1   // Read-only own records
+#define ROLE_DOCTOR   2   // Read dosage + patient records
+
+#define MAX_PASSWD_ENTRIES 16
+#define PASSWD_FILE "/etc/passwd"
+// NOTE: Using djb2 polynomial hash (not XOR). SHA-256 recommended
+// for production — noted as known limitation in final report.
+#define HASH_LEN 32
+
+// Per-process credential structure.
+// WHY: Storing credentials INSIDE the process struct means the
+// kernel always knows who is making a syscall without ever
+// trusting user space to report its own identity (PoLP).
+struct proc_creds {
+    int  uid;            // User ID: 0=admin, 1=patient, 2=doctor
+    int  gid;            // Group ID (mirrors uid in this project)
+    int  role;           // Role enum (mirrors uid for this project)
+    int  authenticated;  // 1 if successfully logged in, 0 if not
+    char username[32];   // Human-readable name for audit log entries
+};
+
+// ================================================================
+// ORIGINAL xv6 STRUCTS — DO NOT MODIFY
+// ================================================================
+
 // Saved registers for kernel context switches.
 struct context {
   uint64 ra;
@@ -20,10 +58,10 @@ struct context {
 
 // Per-CPU state.
 struct cpu {
-  struct proc *proc;          // The process running on this cpu, or null.
-  struct context context;     // swtch() here to enter scheduler().
-  int noff;                   // Depth of push_off() nesting.
-  int intena;                 // Were interrupts enabled before push_off()?
+  struct proc *proc;      // The process running on this cpu, or null.
+  struct context context; // swtch() here to enter scheduler().
+  int noff;               // Depth of push_off() nesting.
+  int intena;             // Were interrupts enabled before push_off()?
 };
 
 extern struct cpu cpus[NCPU];
@@ -37,9 +75,9 @@ extern struct cpu cpus[NCPU];
 // usertrapret() and userret in trampoline.S set up
 // the trapframe's kernel_*, restore user registers from the
 // trapframe, switch to the user page table, and enter user space.
-// the trapframe includes callee-saved user registers like s0-s11 because the
-// return-to-user path via usertrapret() doesn't return through
-// the entire kernel call stack.
+// the trapframe includes callee-saved user registers like s0-s11
+// because the return-to-user path via usertrapret() doesn't return
+// through the entire kernel call stack.
 struct trapframe {
   /*   0 */ uint64 kernel_satp;   // kernel page table
   /*   8 */ uint64 kernel_sp;     // top of process's kernel stack
@@ -81,6 +119,9 @@ struct trapframe {
 
 enum procstate { UNUSED, USED, SLEEPING, RUNNABLE, RUNNING, ZOMBIE };
 
+// ================================================================
+// struct proc — Extended with security fields at the bottom
+// ================================================================
 // Per-process state
 struct proc {
   struct spinlock lock;
@@ -104,4 +145,16 @@ struct proc {
   struct file *ofile[NOFILE];  // Open files
   struct inode *cwd;           // Current directory
   char name[16];               // Process name (debugging)
+
+  // ── NEW SECURITY FIELDS (Phase 1) ──────────────────────────
+  // WHY at the end: appending new fields never shifts the offsets
+  // of existing fields, so all existing kernel code that accesses
+  // proc members by name continues to work without recompilation.
+
+  struct proc_creds creds;     // Authentication credentials (uid/gid/role)
+
+  uint64 stack_canary;         // Stack overflow detection (simplified ASLR/canary)
+                               // Set to 0xDEADBEEFCAFEBABE at login.
+                               // In production: use a per-boot random value.
+  // ────────────────────────────────────────────────────────────
 };

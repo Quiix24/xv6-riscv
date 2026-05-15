@@ -15,6 +15,7 @@
 #include "sleeplock.h"
 #include "file.h"
 #include "fcntl.h"
+#include "syscall.h"
 
 // Fetch the nth word-sized system call argument as a file descriptor
 // and return both the descriptor and the corresponding struct file.
@@ -314,6 +315,8 @@ sys_open(void)
   if((n = argstr(0, path, MAXPATH)) < 0)
     return -1;
 
+  printf("sys_open: path=%s uid=%d gid=%d\n", path, myproc()->creds.uid, myproc()->creds.gid);
+
   begin_op();
 
   if(omode & O_CREATE){
@@ -334,6 +337,21 @@ sys_open(void)
       return -1;
     }
   }
+
+  // === NEW: Check open-time permissions (before filealloc) ===
+  struct proc *p = myproc();
+  int need_read  = (omode == O_RDONLY || omode == O_RDWR) ? 1 : 0;
+  int need_write = (omode == O_WRONLY || omode == O_RDWR ||
+                    (omode & O_TRUNC)  || (omode & O_APPEND)) ? 2 : 0;
+
+  if (check_permission(ip, need_read | need_write,
+                       p->creds.uid, p->creds.gid) < 0) {
+    iunlockput(ip);
+    end_op();
+    audit_log_event(p->pid, p->creds.uid, SYS_open, "DENIED:open_permission");
+    return -1;
+  }
+  // === END NEW ===
 
   if(ip->type == T_DEVICE && (ip->major < 0 || ip->major >= NDEV)){
     iunlockput(ip);
@@ -437,6 +455,7 @@ sys_exec(void)
   char path[MAXPATH], *argv[MAXARG];
   int i;
   uint64 uargv, uarg;
+  struct proc *p = myproc();
 
   argaddr(1, &uargv);
   if(argstr(0, path, MAXPATH) < 0) {
@@ -460,6 +479,19 @@ sys_exec(void)
     if(fetchstr(uarg, argv[i], PGSIZE) < 0)
       goto bad;
   }
+
+  // === NEW: Check execute permission before loading binary ===
+  struct inode *ip = namei(path);
+  if (ip) {
+    ilock(ip);
+    if (check_permission(ip, 4 /*execute*/, p->creds.uid, p->creds.gid) < 0) {
+      iunlockput(ip);
+      audit_log_event(p->pid, p->creds.uid, SYS_exec, "DENIED:exec_permission");
+      goto bad;
+    }
+    iunlockput(ip);
+  }
+  // === END NEW ===
 
   int ret = kexec(path, argv);
 

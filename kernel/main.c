@@ -28,6 +28,12 @@ main()
     iinit();         // inode table
     fileinit();      // file table
     virtio_disk_init(); // emulated hard disk
+
+    // === NEW SECURITY INITS ===
+    audit_init();          // Must be before auth_init (auth logs events)
+    auth_init();           // Load default user credentials
+    // === END NEW ===
+
     userinit();      // first user process
     __sync_synchronize();
     started = 1;

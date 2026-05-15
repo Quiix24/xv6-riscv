@@ -27,6 +27,11 @@ struct inode {
   short nlink;
   uint size;
   uint addrs[NDIRECT+1];
+
+  // === NEW SECURITY FIELDS (CACHED FROM DISK) ===
+  uint mode;
+  uint uid;
+  uint gid;
 };
 
 // map major device number to device functions.

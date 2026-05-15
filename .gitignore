@@ -1,18 +1,24 @@
-*~
-_*
+# Build artifacts
 *.o
 *.d
+*.a
+kernel
+mkfs/mkfs
+user/_*
+fs.img
 *.asm
-*.sym
-*.img
-vectors.S
-bootblock
-entryother
-initcode
-initcode.out
-kernelmemfs
-mkfs
-kernel/kernel
-user/usys.S
-.gdbinit
-TAGS
+*.swp
+*~
+config
+records
+
+# Dependencies
+.deps
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db

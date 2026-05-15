@@ -45,6 +45,7 @@ fsinit(int dev) {
     panic("invalid file system");
   initlog(dev, &sb);
   ireclaim(dev);
+  fsinit_security();
 }
 
 // Zero a block.
@@ -209,6 +210,14 @@ ialloc(uint dev, short type)
     if(dip->type == 0){  // a free inode
       memset(dip, 0, sizeof(*dip));
       dip->type = type;
+
+      // === NEW: Initialize security fields for new files ===
+      struct proc *p = myproc();
+      dip->uid = p->creds.uid;
+      dip->gid = p->creds.gid;
+      // Default: 0755 for dirs, 0644 for files
+      dip->mode = (type == T_DIR) ? 0755 : 0644;
+
       log_write(bp);   // mark it allocated on the disk
       brelse(bp);
       return iget(dev, inum);
@@ -237,6 +246,12 @@ iupdate(struct inode *ip)
   dip->nlink = ip->nlink;
   dip->size = ip->size;
   memmove(dip->addrs, ip->addrs, sizeof(ip->addrs));
+
+  // === NEW ===
+  dip->mode = ip->mode;
+  dip->uid  = ip->uid;
+  dip->gid  = ip->gid;
+
   log_write(bp);
   brelse(bp);
 }
@@ -310,6 +325,12 @@ ilock(struct inode *ip)
     ip->nlink = dip->nlink;
     ip->size = dip->size;
     memmove(ip->addrs, dip->addrs, sizeof(ip->addrs));
+
+    // === NEW: copy permission fields ===
+    ip->mode  = dip->mode;
+    ip->uid   = dip->uid;
+    ip->gid   = dip->gid;
+
     brelse(bp);
     ip->valid = 1;
     if(ip->type == 0)

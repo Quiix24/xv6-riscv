@@ -128,14 +128,16 @@ main(int argc, char *argv[])
   iappend(rootino, &de, sizeof(de));
 
   for(i = 2; i < argc; i++){
-    // get rid of "user/"
+    // get rid of "user/" or "medical_files/.../"
     char *shortname;
     if(strncmp(argv[i], "user/", 5) == 0)
       shortname = argv[i] + 5;
-    else
+    else if(strncmp(argv[i], "medical_files/", 14) == 0) {
+      shortname = strrchr(argv[i], '/') + 1;
+    } else
       shortname = argv[i];
     
-    assert(index(shortname, '/') == 0);
+    // assert(index(shortname, '/') == 0);
 
     if((fd = open(argv[i], 0)) < 0)
       die(argv[i]);
@@ -229,6 +231,9 @@ ialloc(ushort type)
   din.type = xshort(type);
   din.nlink = xshort(1);
   din.size = xint(0);
+  din.mode = xint(0777); // Set default permissions for mkfs-created files
+  din.uid = xint(0);
+  din.gid = xint(0);
   winode(inum, &din);
   return inum;
 }

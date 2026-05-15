@@ -12,12 +12,51 @@
 #include "file.h"
 #include "stat.h"
 #include "proc.h"
+#include "syscall.h"
 
 struct devsw devsw[NDEV];
 struct {
   struct spinlock lock;
   struct file file[NFILE];
 } ftable;
+
+// =============================================================
+// check_permission — Central PoLP enforcement point
+// Returns 0 if access is allowed, -1 if denied
+//
+// WHY centralized: Avoids duplicating permission logic across
+// fileread, filewrite, sys_open — single point of truth
+// means a single fix if a vulnerability is found
+// =============================================================
+int
+check_permission(struct inode *ip, int access_mode, int caller_uid, int caller_gid)
+{
+    // ADMIN (uid=0) bypasses all permission checks
+    // WHY: ADMIN must be able to recover the system; this matches
+    // Linux's CAP_DAC_OVERRIDE capability
+    if (caller_uid == ROLE_ADMIN)
+        return 0;
+
+    uint perm_bits;
+
+    if (caller_uid == (int)ip->uid) {
+        // Caller is the owner
+        perm_bits = (ip->mode >> 6) & 0x7;  // Owner bits
+    } else if (caller_gid == (int)ip->gid) {
+        // Caller's group matches file's group
+        perm_bits = (ip->mode >> 3) & 0x7;  // Group bits
+    } else {
+        // Everyone else
+        perm_bits = ip->mode & 0x7;          // Other bits
+    }
+
+    // access_mode: 1=read, 2=write, 4=execute (can be ORed)
+    if ((access_mode & 1) && !(perm_bits & 4)) return -1;  // Need read, no read bit
+    if ((access_mode & 2) && !(perm_bits & 2)) return -1;  // Need write, no write bit
+    if ((access_mode & 4) && !(perm_bits & 1)) return -1;  // Need exec, no exec bit
+
+    return 0;  // Permitted
+}
 
 void
 fileinit(void)
@@ -107,9 +146,21 @@ int
 fileread(struct file *f, uint64 addr, int n)
 {
   int r = 0;
+  struct proc *p = myproc();
 
   if(f->readable == 0)
     return -1;
+
+  // === NEW: PERMISSION CHECK (Ring 0 enforcement) ===
+  if (f->type == FD_INODE) {
+    ilock(f->ip);
+    if (check_permission(f->ip, 1 /*read*/, p->creds.uid, p->creds.gid) < 0) {
+      iunlock(f->ip);
+      audit_log_event(p->pid, p->creds.uid, SYS_read, "DENIED:read_permission");
+      return -1;
+    }
+    iunlock(f->ip);
+  }
 
   if(f->type == FD_PIPE){
     r = piperead(f->pipe, addr, n);
@@ -135,9 +186,22 @@ int
 filewrite(struct file *f, uint64 addr, int n)
 {
   int r, ret = 0;
+  struct proc *p = myproc();
 
   if(f->writable == 0)
     return -1;
+
+  // === NEW: PERMISSION CHECK ===
+  if (f->type == FD_INODE) {
+    ilock(f->ip);
+    if (check_permission(f->ip, 2 /*write*/, p->creds.uid, p->creds.gid) < 0) {
+      iunlock(f->ip);
+      audit_log_event(p->pid, p->creds.uid, SYS_write, "DENIED:write_permission");
+      return -1;
+    }
+    iunlock(f->ip);
+  }
+  // === END NEW ===
 
   if(f->type == FD_PIPE){
     ret = pipewrite(f->pipe, addr, n);

@@ -290,6 +290,12 @@ kfork(void)
 
   safestrcpy(np->name, p->name, sizeof(p->name));
 
+  // Copy credentials from parent to child (PoLP: child inherits parent's UID/GID)
+  np->creds = p->creds;
+  
+  // DEBUG: Trace credential inheritance
+  printf("DEBUG: fork pid %d -> %d: parent uid=%d, child uid=%d\n", p->pid, np->pid, p->creds.uid, np->creds.uid);
+
   pid = np->pid;
 
   release(&np->lock);
