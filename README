@@ -1,4 +1,3 @@
-```md
 # xv6-riscv Medical Device Security Extension
 
 A security-focused extension for the xv6-riscv operating system designed to simulate a protected medical wearable environment, specifically an insulin pump system.
@@ -613,4 +612,3 @@ The implementation successfully combines:
 directly inside the kernel.
 
 The result is a realistic educational example of how operating system security concepts can be applied to embedded medical systems using xv6 and RISC-V architecture.
-```
