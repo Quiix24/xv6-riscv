@@ -1,411 +1,616 @@
+```md
 # xv6-riscv Medical Device Security Extension
 
-This project extends the xv6-riscv operating system by adding a complete security system designed for a simulated medical wearable device, specifically an insulin pump environment.
+A security-focused extension for the xv6-riscv operating system designed to simulate a protected medical wearable environment, specifically an insulin pump system.
 
-The goal of the project was to transform xv6 from a simple teaching operating system into a more secure system capable of handling authentication, authorization, and auditing completely inside the kernel.
+This project was developed as part of the Operating Systems Security course and focuses on implementing kernel-level protection mechanisms directly inside xv6.
 
-The entire security model runs in Ring 0 (kernel mode), meaning user programs cannot bypass or manipulate the protection mechanisms directly.
+The system introduces:
+- User Authentication and RBAC
+- File Access Control
+- System Call Audit Logging
 
-The project was developed for the Operating Systems Security course at Modern Academy for Engineering & Technology (MAET).
+All security enforcement happens entirely inside the kernel (Ring 0), preventing user-space applications from bypassing protections.
 
-Students:
+---
 
-* Ahmed Mohamed — 221003440
-* Belal Walid — 2210102080
+# Academic Information
 
-Course:
+## University
+Modern Academy for Engineering & Technology (MAET)
 
-* CCY4304 — Operating Systems Security
+## Course
+CCY4304 — Operating Systems Security
 
-Lecturer:
+## Lecturer
+Dr. Ayman Adel
 
-* Dr. Ayman Adel
+## Teaching Assistant
+Eng. Abdelrahman Soliman
 
-Teaching Assistant:
+## Students
+- Ahmed Mohamed — 221003440
+- Belal Walid — 2210102080
 
-* Eng. Abdelrahman Soliman
+## GitHub
+https://github.com/Quiix24
 
-GitHub:
+---
 
-* [Quiix24 GitHub](https://github.com/Quiix24?utm_source=chatgpt.com)
+# Project Goal
 
-Project Overview
+The purpose of this project is to transform the original xv6 teaching operating system into a more secure environment capable of protecting sensitive medical data and device configuration files.
 
-The project adds three major security layers to xv6:
+The project simulates a real-world medical wearable device where:
+- Patients can view their records
+- Doctors can manage dosage logs
+- Administrators maintain full system control
+- Every sensitive action is monitored and logged
 
-1. User Authentication and RBAC
+---
+
+# System Architecture
+
+The project is divided into three major security layers:
+
+1. Authentication and RBAC
 2. File Access Control
-3. System Call Audit Logging
+3. Audit Logging
 
-Together, these layers simulate how a real medical device operating system could protect sensitive patient information and device settings.
+These layers work together to provide:
+- Authentication
+- Authorization
+- Accountability
 
-The system uses three different user roles:
+which form the AAA security model.
 
-* ADMIN
-* DOCTOR
-* PATIENT
+---
 
-Each role has different permissions and access levels.
+# User Roles
 
-Role System
+## ADMIN (UID 0)
 
-ADMIN (UID 0)
+The administrator has unrestricted access to the system.
 
-* Full access to the entire system
-* Bypasses all permission checks
-* Can read audit logs
-* Can manage users
+### Capabilities
+- Access all files
+- Bypass permission checks
+- Read audit logs
+- Manage users
+- Change file ownership and permissions
 
-DOCTOR (UID 2)
+---
 
-* Can read patient records
-* Can read and write dosage logs
-* Cannot access device configuration
+## DOCTOR (UID 2)
 
-PATIENT (UID 1)
+The doctor role is designed for medical staff.
 
-* Can read personal records
-* Can read insulin dosage information
-* Cannot modify device settings
-* Cannot access audit logs
+### Capabilities
+- Read patient records
+- Read and write insulin dosage logs
 
-Development Environment
+### Restrictions
+- Cannot access device configuration
+- Cannot access audit logs
 
-The project was built and tested using:
+---
 
-* Kali Linux
-* QEMU
-* RISC-V 64-bit architecture
-* ANSI C
-* xv6-riscv
+## PATIENT (UID 1)
 
-How the System Works
+The patient role has limited read-only access.
 
-The project starts by forcing every user to authenticate before accessing the shell.
+### Capabilities
+- Read personal records
+- Read insulin dosage information
 
-Instead of spawning the shell immediately after boot, the modified init process displays a login prompt. The shell only starts after successful authentication through a kernel syscall.
+### Restrictions
+- Cannot modify dosage logs
+- Cannot access device configuration
+- Cannot read audit logs
 
-This creates a strict security boundary between user space and kernel space.
+---
 
-Phase 1 — Authentication and RBAC
+# Development Environment
+
+The project was developed using:
+
+- Kali Linux
+- QEMU Emulator
+- RISC-V 64-bit Architecture
+- ANSI C
+- xv6-riscv
+
+---
+
+# Boot and Authentication Flow
+
+The original xv6 system launches a shell immediately after boot.
+
+This project changes that behavior completely.
+
+The modified init process now:
+1. Displays a login prompt
+2. Requires valid credentials
+3. Verifies credentials inside the kernel
+4. Launches the shell only after successful authentication
+
+This guarantees there is no path to the shell without passing through the security layer.
+
+---
+
+# Phase 1 — Authentication and RBAC
+
+## Overview
 
 The first phase implements user authentication and role-based access control.
 
-A user enters a username and password from user space, but the actual verification happens entirely inside the kernel.
+Instead of trusting user applications, the kernel itself verifies identities and stores credentials securely inside the process structure.
 
-The login flow works like this:
+The authentication system ensures:
+- User-space cannot forge identities
+- Permissions cannot be modified by applications
+- Every process has a verified role
 
-1. User enters credentials
-2. User program calls login()
-3. A syscall transfers execution into kernel mode
-4. sys_login() validates the request
-5. auth_verify() checks credentials
-6. Process credentials are stored inside struct proc
-7. The shell launches only after successful authentication
+---
 
-The kernel stores:
+## Authentication Flow
 
-* UID
-* GID
-* User role
-* Authentication state
+The login process works as follows:
 
-inside the process structure itself.
+1. User enters username and password
+2. login() syscall is triggered
+3. Kernel validates user memory safely
+4. auth_verify() checks credentials
+5. Process credentials are stored in struct proc
+6. Shell launches only after successful login
 
-This means user applications cannot forge identities or modify their own permissions.
+---
 
-Security Improvements Added to struct proc
+## Process Security Extensions
 
 The project extends struct proc by adding:
+- User credentials
+- Authentication status
+- Stack canary protection
 
-* Process credentials
-* Authentication state
-* Stack canary protection
+The stack canary helps detect memory corruption attacks inside new syscall handlers.
 
-The stack canary helps detect memory corruption or buffer overflow attacks inside newly added syscall handlers.
+---
 
-Password Storage
+## Password Hashing
 
 Passwords are hashed using the djb2 hashing algorithm.
 
-The project intentionally documents this as an educational limitation because xv6 does not include modern cryptographic libraries.
+### Why djb2 was used
+- xv6 does not contain advanced crypto libraries
+- Lightweight and easy to integrate
+- Suitable for educational purposes
 
-In a production environment, this should be replaced with:
+### Known limitation
+- djb2 is not secure enough for production systems
 
-* bcrypt
-* Argon2
-* Per-user salts
+### Production replacement
+- bcrypt
+- Argon2
+- Per-user random salts
 
-New Authentication Syscalls
+---
 
-The project adds several new syscalls to xv6:
+## New Security Syscalls
 
-* login
-* whoami
-* useradd
-* userdel
-* passwd
-* chmod
-* chown
-* audit_read
+The project introduces several new syscalls:
 
-These syscalls required changes in:
+- login()
+- whoami()
+- useradd()
+- userdel()
+- passwd()
+- chmod()
+- chown()
+- audit_read()
 
-* syscall.h
-* syscall.c
-* usys.pl
-* user.h
+These required modifications in:
+- syscall.h
+- syscall.c
+- usys.pl
+- user.h
 
-The syscall stubs generated by usys.pl allow normal C functions in user space to trigger privileged kernel execution through the ecall instruction.
+The syscall stubs generated by usys.pl allow user-space programs to enter kernel mode through the RISC-V ecall instruction.
 
-Phase 2 — File Access Control
+---
 
-The second phase implements UNIX-style permissions directly inside xv6.
+# Phase 2 — File Access Control
 
-The project adds:
+## Overview
 
-* mode
-* uid
-* gid
+The second phase introduces UNIX-style file permissions directly into xv6.
 
-to both:
+The system stores:
+- mode
+- uid
+- gid
 
-* struct dinode (disk)
-* struct inode (memory)
+inside both:
+- On-disk inodes
+- In-memory inodes
 
-This allows file permissions to persist across reboots while still being cached efficiently in RAM.
+This allows permissions to survive system reboots while remaining efficient during runtime.
 
-Protected Medical Files
+---
 
-The system secures several important files:
+# Protected Medical Files
 
-/patient/records
+## /patient/records
 
-* Patient records
-* Readable by patient and doctor
+### Purpose
+Stores patient medical records.
 
-/dosage/insulin.log
+### Permissions
+- Patient: Read
+- Doctor: Read
+- Admin: Full Access
 
-* Insulin dosage information
-* Writable by doctor
-* Readable by patient
+---
 
-/device/config
+## /dosage/insulin.log
 
-* Device configuration
-* Admin only
+### Purpose
+Stores insulin dosage information.
 
-/audit/syscall.log
+### Permissions
+- Doctor: Read/Write
+- Patient: Read
+- Admin: Full Access
 
-* Security logs
-* Admin read-only
+---
 
-Permission Enforcement
+## /device/config
 
-The project centralizes all permission logic into a single function called check_permission().
+### Purpose
+Stores device configuration.
 
-This function:
+### Permissions
+- Admin only
 
-* Checks user identity
-* Compares ownership
-* Verifies group permissions
-* Applies UNIX permission bits
-* Returns allow or deny
+---
 
-The permission system follows this order:
+## /audit/syscall.log
 
-1. Admin bypass
-2. Owner permissions
-3. Group permissions
-4. Other permissions
+### Purpose
+Stores security audit information.
 
-Centralizing the logic reduces security bugs and makes maintenance easier.
+### Permissions
+- Admin read-only access
 
-Kernel-Level Protection
+---
 
-Permission checks happen before any actual file operation occurs.
+# Permission Enforcement
 
-For example:
+## Centralized Security Model
 
-* fileread() checks permissions before readi()
-* sys_open() validates permissions before allocating a file descriptor
+All permission checks are handled by a single kernel function:
 
-This guarantees unauthorized users never receive even partial file data.
+check_permission()
 
-Real Access Results
+This function determines:
+- Whether the caller owns the file
+- Whether group permissions apply
+- Whether other permissions apply
+- Whether admin bypass is allowed
 
-Doctor:
+Using one centralized function reduces:
+- Duplicate logic
+- Security inconsistencies
+- Maintenance complexity
 
-* Can read patient records
-* Can read insulin logs
-* Cannot access device configuration
+---
 
-Patient:
+## Security Enforcement Inside Ring 0
 
-* Can read personal records
-* Can read insulin logs
-* Cannot access configuration
+Permission validation occurs before:
+- Opening files
+- Reading files
+- Writing files
 
-Admin:
+This guarantees unauthorized users never receive even partial data.
 
-* Can access everything
+### Examples
+- fileread() validates before readi()
+- sys_open() validates before file descriptor allocation
 
-Phase 3 — Audit Logging
+---
 
-The third phase adds accountability to the system.
+# Real Access Results
 
-Every important syscall attempt is recorded inside a kernel ring buffer.
+## Doctor Access
 
-This includes:
+### Allowed
+- Read patient records
+- Read insulin logs
+- Write insulin logs
 
-* Successful operations
-* Failed operations
-* Permission denials
-* Authentication attempts
+### Denied
+- Device configuration access
 
-The audit system records:
+---
 
-* PID
-* UID
-* Syscall name
-* Timestamp
-* Custom message
+## Patient Access
 
-Only the admin user can read audit logs.
+### Allowed
+- Read personal records
+- Read insulin dosage information
 
-Why Logging Happens in trap.c
+### Denied
+- Configuration access
+- Writing dosage logs
+
+---
+
+## Admin Access
+
+### Allowed
+- Full unrestricted system access
+
+---
+
+# Phase 3 — System Call Audit Logging
+
+## Overview
+
+The third phase introduces accountability through audit logging.
+
+Every important security-related syscall attempt is recorded inside a kernel-managed ring buffer.
+
+### Logged events include
+- Authentication attempts
+- Permission denials
+- File access attempts
+- Administrative actions
+
+---
+
+# Audit Log Data
+
+Each audit entry stores:
+- Process ID
+- User ID
+- Syscall name
+- Timestamp
+- Status message
+
+This creates a complete security trail for forensic analysis.
+
+---
+
+# Why Logging Happens Before syscall()
 
 The audit hook is placed inside usertrap() before syscall() executes.
 
-This is important because it guarantees every attempt is logged even if:
+### Advantages
+- Every attempt is recorded
+- Failed syscalls are still logged
+- Crashes and early exits cannot bypass logging
 
-* The syscall fails
-* The syscall exits early
-* The syscall crashes
+This ensures no security event occurs silently.
 
-Nothing security-related happens without leaving an audit trail.
+---
 
-Ring Buffer Design
+# Ring Buffer Design
 
-The audit log uses a circular buffer with 256 entries.
+The audit system uses a circular buffer containing 256 entries.
 
-Advantages:
+### Advantages
+- Constant memory usage
+- No blocking behavior
+- Automatic overwrite of old entries
+- Safe concurrent access using spinlocks
 
-* Never blocks execution
-* Old entries are overwritten automatically
-* Fixed memory usage
-* Safe for kernel use
+---
 
-Spinlocks protect the buffer from race conditions on multi-core systems.
+# Automated Security Testing
 
-Automated Security Testing
+The project includes a complete automated testing suite called:
 
-The project includes an automated testing program called sectest.
+sectest
 
-The test suite verifies:
+### The suite validates
+- Authentication logic
+- File permissions
+- RBAC enforcement
+- Audit log protection
+- User privilege restrictions
 
-* Authentication
-* RBAC restrictions
-* File permissions
-* Audit log protection
-* User privilege enforcement
+---
 
-A total of 12 test cases were implemented.
+# Test Results
 
-Test Results
+## Total Test Cases
+12
 
-The project successfully passed 9 out of 12 automated tests.
+## Passed
+9
 
-Passing tests included:
+## Failed
+3
 
-* Admin login
-* Failed password rejection
-* Patient login
-* File permission enforcement
-* Audit log restrictions
-* RBAC restrictions
+---
 
-The remaining 3 failures were caused by a file initialization timing issue, not by incorrect permission logic.
+## Successful Tests
 
-The issue happens because:
+The following tests passed successfully:
+- Admin login
+- Invalid password rejection
+- Patient login
+- Permission denial enforcement
+- Audit log access restriction
+- RBAC privilege enforcement
 
-* fsinit_security() applies permissions
-* before mkfs creates the files
+---
 
-The actual permission enforcement itself works correctly, as confirmed by live runtime testing.
+## Failed Tests
 
-Main Security Concepts Used
+The failed tests were caused by a file initialization timing issue.
 
-Principle of Least Privilege
+### Problem
+fsinit_security() applies permissions before files are created by mkfs.
 
-* Every role only receives the minimum permissions required
+### Important
+- The permission logic itself works correctly
+- Live runtime tests confirmed proper behavior
 
-Defense in Depth
+---
 
-* Multiple independent protection layers exist simultaneously
+# Security Principles Applied
 
-Ring 0 Enforcement
+## Principle of Least Privilege
 
-* Security decisions happen entirely in kernel mode
+Each role only receives the minimum permissions required.
 
-Accountability
+### Examples
+- Patients cannot modify logs
+- Doctors cannot access configuration files
 
-* Every important action is logged
+---
 
-Single Point of Truth
+## Defense in Depth
 
-* All permission logic exists in one function
+The project combines multiple independent security layers:
+- Authentication
+- File permissions
+- Audit logging
 
-AAA Security Model
+Even if one layer fails, others still protect the system.
 
-* Authentication
-* Authorization
-* Accountability
+---
 
-Known Limitations
+## Ring 0 Enforcement
 
-Some limitations intentionally remain because xv6 is a teaching operating system.
+All security decisions occur inside kernel mode.
 
-Current limitations:
+User-space applications cannot:
+- Forge credentials
+- Modify permissions
+- Bypass access checks
 
-* Passwords are visible while typing
-* djb2 is not cryptographically secure
-* No login rate limiting
-* Fixed stack canary value
-* No ASLR
-* Audit logs are not persisted to disk
+---
 
-Recommended production improvements:
+## Accountability
 
-* Use bcrypt or Argon2
-* Randomize stack canaries
-* Add login throttling
-* Implement ASLR
-* Save audit logs persistently
+Every sensitive action is logged with:
+- User identity
+- Syscall name
+- Timestamp
+- Result
 
-Possible Improvements
+---
 
-The project can likely reach full marks with two small fixes:
+## Single Point of Truth
 
-1. Fix file initialization order
+All permission checks use:
+- check_permission()
 
-* Ensure files exist before applying security metadata
+This simplifies debugging and security patching.
 
-2. Randomize stack canaries
+---
 
-* Generate unique canaries per process or session
+# Known Limitations
 
-Conclusion
+## Password Visibility
 
-This project demonstrates how xv6 can be extended into a security-focused operating system capable of protecting sensitive medical device data.
+### Current Issue
+Passwords are visible during typing.
 
-The implementation combines:
+### Production Fix
+Disable terminal echo using termios.
 
-* Authentication
-* Role-based access control
-* File permissions
-* Audit logging
+---
 
-inside the kernel itself.
+## Weak Password Hashing
 
-The final result is a lightweight but realistic example of how operating system security concepts can be applied to embedded medical systems using xv6 and RISC-V.
+### Current Issue
+djb2 is not cryptographically secure.
+
+### Production Fix
+Use bcrypt or Argon2.
+
+---
+
+## No Login Rate Limiting
+
+### Current Issue
+Unlimited rapid login attempts.
+
+### Production Fix
+Add exponential backoff delays.
+
+---
+
+## Fixed Stack Canary
+
+### Current Issue
+Same canary value for all sessions.
+
+### Production Fix
+Randomize canaries per process.
+
+---
+
+## No ASLR
+
+### Current Issue
+Predictable memory layout.
+
+### Production Fix
+Randomize program load addresses.
+
+---
+
+## Non-Persistent Audit Logs
+
+### Current Issue
+Logs are lost after reboot.
+
+### Production Fix
+Flush logs asynchronously to disk.
+
+---
+
+# Future Improvements
+
+The project can likely achieve full marks with two small improvements.
+
+## Fix File Initialization Order
+
+Ensure protected files exist before:
+- fsinit_security() applies permissions
+
+This would fix:
+- TC05
+- TC06
+- TC12
+
+---
+
+## Randomize Stack Canaries
+
+Replace the fixed canary with:
+- Per-process randomized values
+
+This would improve resistance against memory corruption attacks.
+
+---
+
+# Conclusion
+
+This project demonstrates how xv6 can be transformed into a security-oriented operating system capable of protecting sensitive medical device data.
+
+The implementation successfully combines:
+- Authentication
+- Role-based access control
+- File permission enforcement
+- Audit logging
+
+directly inside the kernel.
+
+The result is a realistic educational example of how operating system security concepts can be applied to embedded medical systems using xv6 and RISC-V architecture.
+```
