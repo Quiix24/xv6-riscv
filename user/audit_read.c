@@ -47,15 +47,14 @@ main(void)
     printf("                    AUDIT LOG DUMP                           \n");
     printf("════════════════════════════════════════════════════════════\n");
     printf("Total entries: %d bytes (%d entries)\n\n", n, num_entries);
-    printf("%-6s %-6s %-15s %-32s %-32s\n", 
-           "PID", "UID", "SYSCALL", "SYSCALL_NAME", "MESSAGE");
+    printf("PID | UID | SYSCALL | SYSCALL_NAME | MESSAGE\n");
     printf("──────────────────────────────────────────────────────────────\n");
     
     for (int i = 0; i < num_entries; i++) {
         struct audit_entry *e = &entries[i];
         if (!e->valid) continue;
         
-        printf("%-6d %-6d %-15d %-32s %-32s\n",
+        printf("%d | %d | %d | %s | %s\n",
                e->pid,
                e->uid,
                e->syscall_num,
