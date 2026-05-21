@@ -168,6 +168,8 @@ main(void)
       cmd[strlen(cmd)-1] = 0;  // chop \n
       if(chdir(cmd+3) < 0)
         fprintf(2, "cannot cd %s\n", cmd+3);
+    } else if(strcmp(cmd, "exit\n") == 0 || strcmp(cmd, "logout\n") == 0){
+      exit(0);
     } else {
       if(fork1() == 0)
         runcmd(parsecmd(cmd));
