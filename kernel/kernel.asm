@@ -2260,7 +2260,7 @@ main()
     virtio_disk_init(); // emulated hard disk
     80000f48:	1e1040ef          	jal	80005928 <virtio_disk_init>
     audit_init();          // Must be before auth_init (auth logs events)
-    80000f4c:	644050ef          	jal	80006590 <audit_init>
+    80000f4c:	76c050ef          	jal	800066b8 <audit_init>
     auth_init();           // Load default user credentials
     80000f50:	6eb040ef          	jal	80005e3a <auth_init>
     userinit();      // first user process
@@ -9741,7 +9741,7 @@ fileread(struct file *f, uint64 addr, int n)
     8000434a:	4615                	li	a2,5
     8000434c:	168a2583          	lw	a1,360(s4)
     80004350:	030a2503          	lw	a0,48(s4)
-    80004354:	290020ef          	jal	800065e4 <audit_log_event>
+    80004354:	3b8020ef          	jal	8000670c <audit_log_event>
       return -1;
     80004358:	57fd                	li	a5,-1
     8000435a:	893e                	mv	s2,a5
@@ -9901,7 +9901,7 @@ filewrite(struct file *f, uint64 addr, int n)
     8000445e:	4641                	li	a2,16
     80004460:	16892583          	lw	a1,360(s2)
     80004464:	03092503          	lw	a0,48(s2)
-    80004468:	17c020ef          	jal	800065e4 <audit_log_event>
+    80004468:	2a4020ef          	jal	8000670c <audit_log_event>
       return -1;
     8000446c:	557d                	li	a0,-1
     8000446e:	6906                	ld	s2,64(sp)
@@ -11865,7 +11865,7 @@ sys_open(void)
     8000531e:	463d                	li	a2,15
     80005320:	16892583          	lw	a1,360(s2)
     80005324:	03092503          	lw	a0,48(s2)
-    80005328:	2bc010ef          	jal	800065e4 <audit_log_event>
+    80005328:	3e4010ef          	jal	8000670c <audit_log_event>
     return -1;
     8000532c:	557d                	li	a0,-1
     8000532e:	74aa                	ld	s1,168(sp)
@@ -12256,7 +12256,7 @@ sys_exec(void)
     800055d6:	461d                	li	a2,7
     800055d8:	168c2583          	lw	a1,360(s8)
     800055dc:	030c2503          	lw	a0,48(s8)
-    800055e0:	004010ef          	jal	800065e4 <audit_log_event>
+    800055e0:	12c010ef          	jal	8000670c <audit_log_event>
       goto bad;
     800055e4:	bf91                	j	80005538 <sys_exec+0x9a>
   return -1;
@@ -14000,7 +14000,7 @@ sys_login(void)
     8000629e:	4659                	li	a2,22
     800062a0:	85a6                	mv	a1,s1
     800062a2:	03092503          	lw	a0,48(s2)
-    800062a6:	33e000ef          	jal	800065e4 <audit_log_event>
+    800062a6:	466000ef          	jal	8000670c <audit_log_event>
     800062aa:	6946                	ld	s2,80(sp)
     800062ac:	69a6                	ld	s3,72(sp)
     return uid;
@@ -14018,7 +14018,7 @@ sys_login(void)
     800062c6:	4659                	li	a2,22
     800062c8:	55fd                	li	a1,-1
     800062ca:	5908                	lw	a0,48(a0)
-    800062cc:	318000ef          	jal	800065e4 <audit_log_event>
+    800062cc:	440000ef          	jal	8000670c <audit_log_event>
         return -1;
     800062d0:	54fd                	li	s1,-1
     800062d2:	bff1                	j	800062ae <sys_login+0xba>
@@ -14125,7 +14125,7 @@ sys_useradd(void)
     80006374:	00002697          	auipc	a3,0x2
     80006378:	5cc68693          	addi	a3,a3,1484 # 80008940 <etext+0x940>
     8000637c:	465d                	li	a2,23
-    8000637e:	266000ef          	jal	800065e4 <audit_log_event>
+    8000637e:	38e000ef          	jal	8000670c <audit_log_event>
                     result == 0 ? "SUCCESS:useradd" : "FAIL:useradd");
     return result;
     80006382:	87ca                	mv	a5,s2
@@ -14136,7 +14136,7 @@ sys_useradd(void)
     8000638c:	5d868693          	addi	a3,a3,1496 # 80008960 <etext+0x960>
     80006390:	465d                	li	a2,23
     80006392:	5908                	lw	a0,48(a0)
-    80006394:	250000ef          	jal	800065e4 <audit_log_event>
+    80006394:	378000ef          	jal	8000670c <audit_log_event>
         return -1;
     80006398:	57fd                	li	a5,-1
 }
@@ -14208,7 +14208,7 @@ sys_userdel(void)
     800063fe:	56668693          	addi	a3,a3,1382 # 80008960 <etext+0x960>
     80006402:	4661                	li	a2,24
     80006404:	5908                	lw	a0,48(a0)
-    80006406:	1de000ef          	jal	800065e4 <audit_log_event>
+    80006406:	306000ef          	jal	8000670c <audit_log_event>
         return -1;
     8000640a:	57fd                	li	a5,-1
     8000640c:	b7cd                	j	800063ee <sys_userdel+0x48>
@@ -14307,7 +14307,7 @@ sys_passwd(void)
     800064b6:	4665                	li	a2,25
     800064b8:	1684a583          	lw	a1,360(s1)
     800064bc:	5888                	lw	a0,48(s1)
-    800064be:	126000ef          	jal	800065e4 <audit_log_event>
+    800064be:	24e000ef          	jal	8000670c <audit_log_event>
             return -1;
     800064c2:	57fd                	li	a5,-1
     800064c4:	a859                	j	8000655a <sys_passwd+0x14c>
@@ -14317,7 +14317,7 @@ sys_passwd(void)
     800064ce:	4665                	li	a2,25
     800064d0:	1684a583          	lw	a1,360(s1)
     800064d4:	5888                	lw	a0,48(s1)
-    800064d6:	10e000ef          	jal	800065e4 <audit_log_event>
+    800064d6:	236000ef          	jal	8000670c <audit_log_event>
         return -1;
     800064da:	57fd                	li	a5,-1
     800064dc:	a8bd                	j	8000655a <sys_passwd+0x14c>
@@ -14355,7 +14355,7 @@ sys_passwd(void)
     8000652e:	4665                	li	a2,25
     80006530:	168aa583          	lw	a1,360(s5)
     80006534:	030aa503          	lw	a0,48(s5)
-    80006538:	0ac000ef          	jal	800065e4 <audit_log_event>
+    80006538:	1d4000ef          	jal	8000670c <audit_log_event>
             return 0;
     8000653c:	4781                	li	a5,0
     8000653e:	690a                	ld	s2,128(sp)
@@ -14386,594 +14386,769 @@ sys_passwd(void)
     8000656a:	bfc5                	j	8000655a <sys_passwd+0x14c>
 
 000000008000656c <sys_chmod>:
-// =============================================================
-// sys_chmod — Placeholder for Phase 2
+// sys_chmod — Change file mode/permissions
+// Only owner or admin (uid=0) may change permissions
 // =============================================================
 uint64
 sys_chmod(void)
 {
-    8000656c:	1141                	addi	sp,sp,-16
-    8000656e:	e406                	sd	ra,8(sp)
-    80006570:	e022                	sd	s0,0(sp)
-    80006572:	0800                	addi	s0,sp,16
-    return 0; // Success placeholder
-}
-    80006574:	4501                	li	a0,0
-    80006576:	60a2                	ld	ra,8(sp)
-    80006578:	6402                	ld	s0,0(sp)
-    8000657a:	0141                	addi	sp,sp,16
-    8000657c:	8082                	ret
+    8000656c:	7171                	addi	sp,sp,-176
+    8000656e:	f506                	sd	ra,168(sp)
+    80006570:	f122                	sd	s0,160(sp)
+    80006572:	e94a                	sd	s2,144(sp)
+    80006574:	1900                	addi	s0,sp,176
+    char path[MAXPATH];
+    uint mode;
+    struct inode *ip;
+    struct proc *p = myproc();
+    80006576:	bc0fb0ef          	jal	80001936 <myproc>
+    8000657a:	892a                	mv	s2,a0
 
-000000008000657e <sys_chown>:
-// =============================================================
-// sys_chown — Placeholder for Phase 2
+    if(argstr(0, path, MAXPATH) < 0)
+    8000657c:	08000613          	li	a2,128
+    80006580:	f6040593          	addi	a1,s0,-160
+    80006584:	4501                	li	a0,0
+    80006586:	b54fc0ef          	jal	800028da <argstr>
+        return -1;
+    8000658a:	57fd                	li	a5,-1
+    if(argstr(0, path, MAXPATH) < 0)
+    8000658c:	04054a63          	bltz	a0,800065e0 <sys_chmod+0x74>
+    if(argint(1, (int*)&mode) < 0)
+    80006590:	f5c40593          	addi	a1,s0,-164
+    80006594:	4505                	li	a0,1
+    80006596:	b08fc0ef          	jal	8000289e <argint>
+        return -1;
+    8000659a:	57fd                	li	a5,-1
+    if(argint(1, (int*)&mode) < 0)
+    8000659c:	04054263          	bltz	a0,800065e0 <sys_chmod+0x74>
+    800065a0:	ed26                	sd	s1,152(sp)
+
+    begin_op();
+    800065a2:	f42fd0ef          	jal	80003ce4 <begin_op>
+    if((ip = namei(path)) == 0){
+    800065a6:	f6040513          	addi	a0,s0,-160
+    800065aa:	d5cfd0ef          	jal	80003b06 <namei>
+    800065ae:	84aa                	mv	s1,a0
+    800065b0:	cd15                	beqz	a0,800065ec <sys_chmod+0x80>
+        end_op();
+        return -1;  // File not found
+    }
+
+    ilock(ip);
+    800065b2:	d01fc0ef          	jal	800032b2 <ilock>
+
+    // Permission check: only owner or admin can change permissions
+    if(ip->uid != p->creds.uid && p->creds.uid != ROLE_ADMIN){
+    800065b6:	16892783          	lw	a5,360(s2)
+    800065ba:	0884a703          	lw	a4,136(s1)
+    800065be:	00f70363          	beq	a4,a5,800065c4 <sys_chmod+0x58>
+    800065c2:	eb95                	bnez	a5,800065f6 <sys_chmod+0x8a>
+        iunlockput(ip);
+        end_op();
+        return -1;  // Permission denied
+    }
+
+    ip->mode = mode;
+    800065c4:	f5c42783          	lw	a5,-164(s0)
+    800065c8:	08f4a223          	sw	a5,132(s1)
+    iupdate(ip);
+    800065cc:	8526                	mv	a0,s1
+    800065ce:	c13fc0ef          	jal	800031e0 <iupdate>
+
+    iunlockput(ip);
+    800065d2:	8526                	mv	a0,s1
+    800065d4:	f0dfc0ef          	jal	800034e0 <iunlockput>
+    end_op();
+    800065d8:	f7cfd0ef          	jal	80003d54 <end_op>
+    return 0;  // Success
+    800065dc:	4781                	li	a5,0
+    800065de:	64ea                	ld	s1,152(sp)
+}
+    800065e0:	853e                	mv	a0,a5
+    800065e2:	70aa                	ld	ra,168(sp)
+    800065e4:	740a                	ld	s0,160(sp)
+    800065e6:	694a                	ld	s2,144(sp)
+    800065e8:	614d                	addi	sp,sp,176
+    800065ea:	8082                	ret
+        end_op();
+    800065ec:	f68fd0ef          	jal	80003d54 <end_op>
+        return -1;  // File not found
+    800065f0:	57fd                	li	a5,-1
+    800065f2:	64ea                	ld	s1,152(sp)
+    800065f4:	b7f5                	j	800065e0 <sys_chmod+0x74>
+        iunlockput(ip);
+    800065f6:	8526                	mv	a0,s1
+    800065f8:	ee9fc0ef          	jal	800034e0 <iunlockput>
+        end_op();
+    800065fc:	f58fd0ef          	jal	80003d54 <end_op>
+        return -1;  // Permission denied
+    80006600:	57fd                	li	a5,-1
+    80006602:	64ea                	ld	s1,152(sp)
+    80006604:	bff1                	j	800065e0 <sys_chmod+0x74>
+
+0000000080006606 <sys_chown>:
+// sys_chown — Change file owner and group
+// Only owner or admin (uid=0) may change ownership
 // =============================================================
 uint64
 sys_chown(void)
 {
-    8000657e:	1141                	addi	sp,sp,-16
-    80006580:	e406                	sd	ra,8(sp)
-    80006582:	e022                	sd	s0,0(sp)
-    80006584:	0800                	addi	s0,sp,16
-    return 0; // Success placeholder
-    80006586:	4501                	li	a0,0
-    80006588:	60a2                	ld	ra,8(sp)
-    8000658a:	6402                	ld	s0,0(sp)
-    8000658c:	0141                	addi	sp,sp,16
-    8000658e:	8082                	ret
+    80006606:	7171                	addi	sp,sp,-176
+    80006608:	f506                	sd	ra,168(sp)
+    8000660a:	f122                	sd	s0,160(sp)
+    8000660c:	e94a                	sd	s2,144(sp)
+    8000660e:	1900                	addi	s0,sp,176
+    char path[MAXPATH];
+    int uid, gid;
+    struct inode *ip;
+    struct proc *p = myproc();
+    80006610:	b26fb0ef          	jal	80001936 <myproc>
+    80006614:	892a                	mv	s2,a0
 
-0000000080006590 <audit_init>:
+    if(argstr(0, path, MAXPATH) < 0)
+    80006616:	08000613          	li	a2,128
+    8000661a:	f6040593          	addi	a1,s0,-160
+    8000661e:	4501                	li	a0,0
+    80006620:	abafc0ef          	jal	800028da <argstr>
+        return -1;
+    80006624:	57fd                	li	a5,-1
+    if(argstr(0, path, MAXPATH) < 0)
+    80006626:	06054663          	bltz	a0,80006692 <sys_chown+0x8c>
+    if(argint(1, &uid) < 0)
+    8000662a:	f5c40593          	addi	a1,s0,-164
+    8000662e:	4505                	li	a0,1
+    80006630:	a6efc0ef          	jal	8000289e <argint>
+        return -1;
+    80006634:	57fd                	li	a5,-1
+    if(argint(1, &uid) < 0)
+    80006636:	04054e63          	bltz	a0,80006692 <sys_chown+0x8c>
+    if(argint(2, &gid) < 0)
+    8000663a:	f5840593          	addi	a1,s0,-168
+    8000663e:	4509                	li	a0,2
+    80006640:	a5efc0ef          	jal	8000289e <argint>
+        return -1;
+    80006644:	57fd                	li	a5,-1
+    if(argint(2, &gid) < 0)
+    80006646:	04054663          	bltz	a0,80006692 <sys_chown+0x8c>
+    8000664a:	ed26                	sd	s1,152(sp)
+
+    begin_op();
+    8000664c:	e98fd0ef          	jal	80003ce4 <begin_op>
+    if((ip = namei(path)) == 0){
+    80006650:	f6040513          	addi	a0,s0,-160
+    80006654:	cb2fd0ef          	jal	80003b06 <namei>
+    80006658:	84aa                	mv	s1,a0
+    8000665a:	c131                	beqz	a0,8000669e <sys_chown+0x98>
+        end_op();
+        return -1;  // File not found
+    }
+
+    ilock(ip);
+    8000665c:	c57fc0ef          	jal	800032b2 <ilock>
+
+    // Permission check: only owner or admin can change ownership
+    if(ip->uid != p->creds.uid && p->creds.uid != ROLE_ADMIN){
+    80006660:	16892783          	lw	a5,360(s2)
+    80006664:	0884a703          	lw	a4,136(s1)
+    80006668:	00f70363          	beq	a4,a5,8000666e <sys_chown+0x68>
+    8000666c:	ef95                	bnez	a5,800066a8 <sys_chown+0xa2>
+        iunlockput(ip);
+        end_op();
+        return -1;  // Permission denied
+    }
+
+    ip->uid = uid;
+    8000666e:	f5c42783          	lw	a5,-164(s0)
+    80006672:	08f4a423          	sw	a5,136(s1)
+    ip->gid = gid;
+    80006676:	f5842783          	lw	a5,-168(s0)
+    8000667a:	08f4a623          	sw	a5,140(s1)
+    iupdate(ip);
+    8000667e:	8526                	mv	a0,s1
+    80006680:	b61fc0ef          	jal	800031e0 <iupdate>
+
+    iunlockput(ip);
+    80006684:	8526                	mv	a0,s1
+    80006686:	e5bfc0ef          	jal	800034e0 <iunlockput>
+    end_op();
+    8000668a:	ecafd0ef          	jal	80003d54 <end_op>
+    return 0;  // Success
+    8000668e:	4781                	li	a5,0
+    80006690:	64ea                	ld	s1,152(sp)
+    80006692:	853e                	mv	a0,a5
+    80006694:	70aa                	ld	ra,168(sp)
+    80006696:	740a                	ld	s0,160(sp)
+    80006698:	694a                	ld	s2,144(sp)
+    8000669a:	614d                	addi	sp,sp,176
+    8000669c:	8082                	ret
+        end_op();
+    8000669e:	eb6fd0ef          	jal	80003d54 <end_op>
+        return -1;  // File not found
+    800066a2:	57fd                	li	a5,-1
+    800066a4:	64ea                	ld	s1,152(sp)
+    800066a6:	b7f5                	j	80006692 <sys_chown+0x8c>
+        iunlockput(ip);
+    800066a8:	8526                	mv	a0,s1
+    800066aa:	e37fc0ef          	jal	800034e0 <iunlockput>
+        end_op();
+    800066ae:	ea6fd0ef          	jal	80003d54 <end_op>
+        return -1;  // Permission denied
+    800066b2:	57fd                	li	a5,-1
+    800066b4:	64ea                	ld	s1,152(sp)
+    800066b6:	bff1                	j	80006692 <sys_chown+0x8c>
+
+00000000800066b8 <audit_init>:
 // =============================================================
 // audit_init — Called from main() at boot
 // =============================================================
 void
 audit_init(void)
 {
-    80006590:	1141                	addi	sp,sp,-16
-    80006592:	e406                	sd	ra,8(sp)
-    80006594:	e022                	sd	s0,0(sp)
-    80006596:	0800                	addi	s0,sp,16
+    800066b8:	1141                	addi	sp,sp,-16
+    800066ba:	e406                	sd	ra,8(sp)
+    800066bc:	e022                	sd	s0,0(sp)
+    800066be:	0800                	addi	s0,sp,16
     initlock(&g_audit.lock, "audit");
-    80006598:	00002597          	auipc	a1,0x2
-    8000659c:	42858593          	addi	a1,a1,1064 # 800089c0 <etext+0x9c0>
-    800065a0:	00028517          	auipc	a0,0x28
-    800065a4:	22850513          	addi	a0,a0,552 # 8002e7c8 <g_audit+0xb410>
-    800065a8:	df6fa0ef          	jal	80000b9e <initlock>
+    800066c0:	00002597          	auipc	a1,0x2
+    800066c4:	30058593          	addi	a1,a1,768 # 800089c0 <etext+0x9c0>
+    800066c8:	00028517          	auipc	a0,0x28
+    800066cc:	10050513          	addi	a0,a0,256 # 8002e7c8 <g_audit+0xb410>
+    800066d0:	ccefa0ef          	jal	80000b9e <initlock>
     g_audit.head  = 0;
-    800065ac:	00028797          	auipc	a5,0x28
-    800065b0:	e0c78793          	addi	a5,a5,-500 # 8002e3b8 <g_audit+0xb000>
-    800065b4:	4007a023          	sw	zero,1024(a5)
+    800066d4:	00028797          	auipc	a5,0x28
+    800066d8:	ce478793          	addi	a5,a5,-796 # 8002e3b8 <g_audit+0xb000>
+    800066dc:	4007a023          	sw	zero,1024(a5)
     g_audit.tail  = 0;
-    800065b8:	4007a223          	sw	zero,1028(a5)
+    800066e0:	4007a223          	sw	zero,1028(a5)
     g_audit.count = 0;
-    800065bc:	4007a423          	sw	zero,1032(a5)
+    800066e4:	4007a423          	sw	zero,1032(a5)
     // Clear buffer
     for (int i = 0; i < AUDIT_MAX; i++)
-    800065c0:	0001d797          	auipc	a5,0x1d
-    800065c4:	ea878793          	addi	a5,a5,-344 # 80023468 <g_audit+0xb0>
-    800065c8:	00028717          	auipc	a4,0x28
-    800065cc:	2a070713          	addi	a4,a4,672 # 8002e868 <end+0x88>
+    800066e8:	0001d797          	auipc	a5,0x1d
+    800066ec:	d8078793          	addi	a5,a5,-640 # 80023468 <g_audit+0xb0>
+    800066f0:	00028717          	auipc	a4,0x28
+    800066f4:	17870713          	addi	a4,a4,376 # 8002e868 <end+0x88>
         g_audit.buf[i].valid = 0;
-    800065d0:	0007a023          	sw	zero,0(a5)
+    800066f8:	0007a023          	sw	zero,0(a5)
     for (int i = 0; i < AUDIT_MAX; i++)
-    800065d4:	0b478793          	addi	a5,a5,180
-    800065d8:	fee79ce3          	bne	a5,a4,800065d0 <audit_init+0x40>
+    800066fc:	0b478793          	addi	a5,a5,180
+    80006700:	fee79ce3          	bne	a5,a4,800066f8 <audit_init+0x40>
 }
-    800065dc:	60a2                	ld	ra,8(sp)
-    800065de:	6402                	ld	s0,0(sp)
-    800065e0:	0141                	addi	sp,sp,16
-    800065e2:	8082                	ret
+    80006704:	60a2                	ld	ra,8(sp)
+    80006706:	6402                	ld	s0,0(sp)
+    80006708:	0141                	addi	sp,sp,16
+    8000670a:	8082                	ret
 
-00000000800065e4 <audit_log_event>:
+000000008000670c <audit_log_event>:
 // audit_log_event — Write an event to ring buffer AND disk file
 // Called from anywhere in the kernel (interrupt-safe via spinlock)
 // =============================================================
 void
 audit_log_event(int pid, int uid, int syscall_num, const char *message)
 {
-    800065e4:	7131                	addi	sp,sp,-192
-    800065e6:	fd06                	sd	ra,184(sp)
-    800065e8:	f922                	sd	s0,176(sp)
-    800065ea:	f526                	sd	s1,168(sp)
-    800065ec:	f14a                	sd	s2,160(sp)
-    800065ee:	ed4e                	sd	s3,152(sp)
-    800065f0:	e952                	sd	s4,144(sp)
-    800065f2:	e556                	sd	s5,136(sp)
-    800065f4:	e15a                	sd	s6,128(sp)
-    800065f6:	0180                	addi	s0,sp,192
-    800065f8:	8a2a                	mv	s4,a0
-    800065fa:	89ae                	mv	s3,a1
-    800065fc:	8932                	mv	s2,a2
-    800065fe:	84b6                	mv	s1,a3
+    8000670c:	7131                	addi	sp,sp,-192
+    8000670e:	fd06                	sd	ra,184(sp)
+    80006710:	f922                	sd	s0,176(sp)
+    80006712:	f526                	sd	s1,168(sp)
+    80006714:	f14a                	sd	s2,160(sp)
+    80006716:	ed4e                	sd	s3,152(sp)
+    80006718:	e952                	sd	s4,144(sp)
+    8000671a:	e556                	sd	s5,136(sp)
+    8000671c:	e15a                	sd	s6,128(sp)
+    8000671e:	0180                	addi	s0,sp,192
+    80006720:	8a2a                	mv	s4,a0
+    80006722:	89ae                	mv	s3,a1
+    80006724:	8932                	mv	s2,a2
+    80006726:	84b6                	mv	s1,a3
     acquire(&g_audit.lock);
-    80006600:	00028517          	auipc	a0,0x28
-    80006604:	1c850513          	addi	a0,a0,456 # 8002e7c8 <g_audit+0xb410>
-    80006608:	e20fa0ef          	jal	80000c28 <acquire>
+    80006728:	00028517          	auipc	a0,0x28
+    8000672c:	0a050513          	addi	a0,a0,160 # 8002e7c8 <g_audit+0xb410>
+    80006730:	cf8fa0ef          	jal	80000c28 <acquire>
 
     struct audit_entry *e = &g_audit.buf[g_audit.head];
-    8000660c:	00028a97          	auipc	s5,0x28
-    80006610:	1acaaa83          	lw	s5,428(s5) # 8002e7b8 <g_audit+0xb400>
+    80006734:	00028a97          	auipc	s5,0x28
+    80006738:	084aaa83          	lw	s5,132(s5) # 8002e7b8 <g_audit+0xb400>
 
     e->pid         = pid;
-    80006614:	0b400713          	li	a4,180
-    80006618:	02ea8733          	mul	a4,s5,a4
-    8000661c:	0001d797          	auipc	a5,0x1d
-    80006620:	d9c78793          	addi	a5,a5,-612 # 800233b8 <g_audit>
-    80006624:	97ba                	add	a5,a5,a4
-    80006626:	0147a023          	sw	s4,0(a5)
+    8000673c:	0b400713          	li	a4,180
+    80006740:	02ea8733          	mul	a4,s5,a4
+    80006744:	0001d797          	auipc	a5,0x1d
+    80006748:	c7478793          	addi	a5,a5,-908 # 800233b8 <g_audit>
+    8000674c:	97ba                	add	a5,a5,a4
+    8000674e:	0147a023          	sw	s4,0(a5)
     e->uid         = uid;
-    8000662a:	0137a223          	sw	s3,4(a5)
+    80006752:	0137a223          	sw	s3,4(a5)
     e->syscall_num = syscall_num;
-    8000662e:	0127a423          	sw	s2,8(a5)
+    80006756:	0127a423          	sw	s2,8(a5)
 
     // Resolve syscall name
     if (syscall_num >= 0 && syscall_num < (int)NUM_SYSCALLS &&
-    80006632:	47f5                	li	a5,29
-    80006634:	0327e963          	bltu	a5,s2,80006666 <audit_log_event+0x82>
+    8000675a:	47f5                	li	a5,29
+    8000675c:	0327e963          	bltu	a5,s2,8000678e <audit_log_event+0x82>
         syscall_names[syscall_num]) {
-    80006638:	00391713          	slli	a4,s2,0x3
-    8000663c:	00002797          	auipc	a5,0x2
-    80006640:	60c78793          	addi	a5,a5,1548 # 80008c48 <syscall_names>
-    80006644:	97ba                	add	a5,a5,a4
-    80006646:	638c                	ld	a1,0(a5)
+    80006760:	00391713          	slli	a4,s2,0x3
+    80006764:	00002797          	auipc	a5,0x2
+    80006768:	4e478793          	addi	a5,a5,1252 # 80008c48 <syscall_names>
+    8000676c:	97ba                	add	a5,a5,a4
+    8000676e:	638c                	ld	a1,0(a5)
     if (syscall_num >= 0 && syscall_num < (int)NUM_SYSCALLS &&
-    80006648:	cd99                	beqz	a1,80006666 <audit_log_event+0x82>
+    80006770:	cd99                	beqz	a1,8000678e <audit_log_event+0x82>
         safestrcpy(e->syscall_name, syscall_names[syscall_num], 32);
-    8000664a:	0b400793          	li	a5,180
-    8000664e:	02fa87b3          	mul	a5,s5,a5
-    80006652:	02000613          	li	a2,32
-    80006656:	0001d517          	auipc	a0,0x1d
-    8000665a:	d6e50513          	addi	a0,a0,-658 # 800233c4 <g_audit+0xc>
-    8000665e:	953e                	add	a0,a0,a5
-    80006660:	fecfa0ef          	jal	80000e4c <safestrcpy>
-    80006664:	a015                	j	80006688 <audit_log_event+0xa4>
+    80006772:	0b400793          	li	a5,180
+    80006776:	02fa87b3          	mul	a5,s5,a5
+    8000677a:	02000613          	li	a2,32
+    8000677e:	0001d517          	auipc	a0,0x1d
+    80006782:	c4650513          	addi	a0,a0,-954 # 800233c4 <g_audit+0xc>
+    80006786:	953e                	add	a0,a0,a5
+    80006788:	ec4fa0ef          	jal	80000e4c <safestrcpy>
+    8000678c:	a015                	j	800067b0 <audit_log_event+0xa4>
     } else {
         safestrcpy(e->syscall_name, "unknown", 32);
-    80006666:	0b400793          	li	a5,180
-    8000666a:	02fa87b3          	mul	a5,s5,a5
-    8000666e:	02000613          	li	a2,32
-    80006672:	00002597          	auipc	a1,0x2
-    80006676:	35658593          	addi	a1,a1,854 # 800089c8 <etext+0x9c8>
-    8000667a:	0001d517          	auipc	a0,0x1d
-    8000667e:	d4a50513          	addi	a0,a0,-694 # 800233c4 <g_audit+0xc>
-    80006682:	953e                	add	a0,a0,a5
-    80006684:	fc8fa0ef          	jal	80000e4c <safestrcpy>
+    8000678e:	0b400793          	li	a5,180
+    80006792:	02fa87b3          	mul	a5,s5,a5
+    80006796:	02000613          	li	a2,32
+    8000679a:	00002597          	auipc	a1,0x2
+    8000679e:	22e58593          	addi	a1,a1,558 # 800089c8 <etext+0x9c8>
+    800067a2:	0001d517          	auipc	a0,0x1d
+    800067a6:	c2250513          	addi	a0,a0,-990 # 800233c4 <g_audit+0xc>
+    800067aa:	953e                	add	a0,a0,a5
+    800067ac:	ea0fa0ef          	jal	80000e4c <safestrcpy>
     }
 
     safestrcpy(e->message, message ? message : "", AUDIT_MSG_LEN);
-    80006688:	0b400b13          	li	s6,180
-    8000668c:	036a8b33          	mul	s6,s5,s6
-    80006690:	0001d517          	auipc	a0,0x1d
-    80006694:	d5450513          	addi	a0,a0,-684 # 800233e4 <g_audit+0x2c>
-    80006698:	955a                	add	a0,a0,s6
-    8000669a:	00002597          	auipc	a1,0x2
-    8000669e:	ff658593          	addi	a1,a1,-10 # 80008690 <etext+0x690>
-    800066a2:	c091                	beqz	s1,800066a6 <audit_log_event+0xc2>
-    800066a4:	85a6                	mv	a1,s1
-    800066a6:	08000613          	li	a2,128
-    800066aa:	fa2fa0ef          	jal	80000e4c <safestrcpy>
+    800067b0:	0b400b13          	li	s6,180
+    800067b4:	036a8b33          	mul	s6,s5,s6
+    800067b8:	0001d517          	auipc	a0,0x1d
+    800067bc:	c2c50513          	addi	a0,a0,-980 # 800233e4 <g_audit+0x2c>
+    800067c0:	955a                	add	a0,a0,s6
+    800067c2:	00002597          	auipc	a1,0x2
+    800067c6:	ece58593          	addi	a1,a1,-306 # 80008690 <etext+0x690>
+    800067ca:	c091                	beqz	s1,800067ce <audit_log_event+0xc2>
+    800067cc:	85a6                	mv	a1,s1
+    800067ce:	08000613          	li	a2,128
+    800067d2:	e7afa0ef          	jal	80000e4c <safestrcpy>
     e->timestamp = ticks;  // Kernel tick counter (defined in trap.c)
-    800066ae:	0b400793          	li	a5,180
-    800066b2:	02fa8ab3          	mul	s5,s5,a5
-    800066b6:	0001d797          	auipc	a5,0x1d
-    800066ba:	d0278793          	addi	a5,a5,-766 # 800233b8 <g_audit>
-    800066be:	97d6                	add	a5,a5,s5
-    800066c0:	00002717          	auipc	a4,0x2
-    800066c4:	6b872703          	lw	a4,1720(a4) # 80008d78 <ticks>
-    800066c8:	0ae7a623          	sw	a4,172(a5)
+    800067d6:	0b400793          	li	a5,180
+    800067da:	02fa8ab3          	mul	s5,s5,a5
+    800067de:	0001d797          	auipc	a5,0x1d
+    800067e2:	bda78793          	addi	a5,a5,-1062 # 800233b8 <g_audit>
+    800067e6:	97d6                	add	a5,a5,s5
+    800067e8:	00002717          	auipc	a4,0x2
+    800067ec:	59072703          	lw	a4,1424(a4) # 80008d78 <ticks>
+    800067f0:	0ae7a623          	sw	a4,172(a5)
     e->valid     = 1;
-    800066cc:	4705                	li	a4,1
-    800066ce:	0ae7a823          	sw	a4,176(a5)
+    800067f4:	4705                	li	a4,1
+    800067f6:	0ae7a823          	sw	a4,176(a5)
 
     // Advance write pointer (wrap around — ring buffer)
     g_audit.head = (g_audit.head + 1) % AUDIT_MAX;
-    800066d2:	00028697          	auipc	a3,0x28
-    800066d6:	ce668693          	addi	a3,a3,-794 # 8002e3b8 <g_audit+0xb000>
-    800066da:	4006a783          	lw	a5,1024(a3)
-    800066de:	2785                	addiw	a5,a5,1
-    800066e0:	41f7d71b          	sraiw	a4,a5,0x1f
-    800066e4:	0187571b          	srliw	a4,a4,0x18
-    800066e8:	9fb9                	addw	a5,a5,a4
-    800066ea:	0ff7f793          	zext.b	a5,a5
-    800066ee:	9f99                	subw	a5,a5,a4
-    800066f0:	40f6a023          	sw	a5,1024(a3)
+    800067fa:	00028697          	auipc	a3,0x28
+    800067fe:	bbe68693          	addi	a3,a3,-1090 # 8002e3b8 <g_audit+0xb000>
+    80006802:	4006a783          	lw	a5,1024(a3)
+    80006806:	2785                	addiw	a5,a5,1
+    80006808:	41f7d71b          	sraiw	a4,a5,0x1f
+    8000680c:	0187571b          	srliw	a4,a4,0x18
+    80006810:	9fb9                	addw	a5,a5,a4
+    80006812:	0ff7f793          	zext.b	a5,a5
+    80006816:	9f99                	subw	a5,a5,a4
+    80006818:	40f6a023          	sw	a5,1024(a3)
 
     // If buffer is full, overwrite oldest (tail advances too)
     // WHY: We prefer losing old entries over dropping current events
     if (g_audit.count < AUDIT_MAX) {
-    800066f4:	4086a783          	lw	a5,1032(a3)
-    800066f8:	0ff00713          	li	a4,255
-    800066fc:	16f74563          	blt	a4,a5,80006866 <audit_log_event+0x282>
+    8000681c:	4086a783          	lw	a5,1032(a3)
+    80006820:	0ff00713          	li	a4,255
+    80006824:	16f74563          	blt	a4,a5,8000698e <audit_log_event+0x282>
         g_audit.count++;
-    80006700:	2785                	addiw	a5,a5,1
-    80006702:	00028717          	auipc	a4,0x28
-    80006706:	0af72f23          	sw	a5,190(a4) # 8002e7c0 <g_audit+0xb408>
+    80006828:	2785                	addiw	a5,a5,1
+    8000682a:	00028717          	auipc	a4,0x28
+    8000682e:	f8f72b23          	sw	a5,-106(a4) # 8002e7c0 <g_audit+0xb408>
         // Overwrite: advance tail to discard oldest
         g_audit.tail = (g_audit.tail + 1) % AUDIT_MAX;
         printf("audit: WARNING: ring buffer full, oldest entry dropped\n");
     }
 
     release(&g_audit.lock);
-    8000670a:	00028517          	auipc	a0,0x28
-    8000670e:	0be50513          	addi	a0,a0,190 # 8002e7c8 <g_audit+0xb410>
-    80006712:	daafa0ef          	jal	80000cbc <release>
+    80006832:	00028517          	auipc	a0,0x28
+    80006836:	f9650513          	addi	a0,a0,-106 # 8002e7c8 <g_audit+0xb410>
+    8000683a:	c82fa0ef          	jal	80000cbc <release>
     
     // ALSO write to disk file (outside lock to avoid holding lock during I/O)
     audit_write_to_file(pid, uid, syscall_num, e->syscall_name, message);
-    80006716:	0001d717          	auipc	a4,0x1d
-    8000671a:	cae70713          	addi	a4,a4,-850 # 800233c4 <g_audit+0xc>
-    8000671e:	975a                	add	a4,a4,s6
+    8000683e:	0001d717          	auipc	a4,0x1d
+    80006842:	b8670713          	addi	a4,a4,-1146 # 800233c4 <g_audit+0xc>
+    80006846:	975a                	add	a4,a4,s6
     if (pid < 10) line[off++] = '0' + pid;
-    80006720:	47a5                	li	a5,9
-    80006722:	1747ca63          	blt	a5,s4,80006896 <audit_log_event+0x2b2>
-    80006726:	030a0a1b          	addiw	s4,s4,48
-    8000672a:	f5440023          	sb	s4,-192(s0)
-    8000672e:	4685                	li	a3,1
+    80006848:	47a5                	li	a5,9
+    8000684a:	1747ca63          	blt	a5,s4,800069be <audit_log_event+0x2b2>
+    8000684e:	030a0a1b          	addiw	s4,s4,48
+    80006852:	f5440023          	sb	s4,-192(s0)
+    80006856:	4685                	li	a3,1
     line[off++] = '|';
-    80006730:	0016861b          	addiw	a2,a3,1
-    80006734:	07c00593          	li	a1,124
-    80006738:	fc068793          	addi	a5,a3,-64
-    8000673c:	97a2                	add	a5,a5,s0
-    8000673e:	f8b78023          	sb	a1,-128(a5)
+    80006858:	0016861b          	addiw	a2,a3,1
+    8000685c:	07c00593          	li	a1,124
+    80006860:	fc068793          	addi	a5,a3,-64
+    80006864:	97a2                	add	a5,a5,s0
+    80006866:	f8b78023          	sb	a1,-128(a5)
     if (uid < 10) line[off++] = '0' + uid;
-    80006742:	47a5                	li	a5,9
-    80006744:	1937c463          	blt	a5,s3,800068cc <audit_log_event+0x2e8>
-    80006748:	00268793          	addi	a5,a3,2
-    8000674c:	fc060693          	addi	a3,a2,-64
-    80006750:	00868633          	add	a2,a3,s0
-    80006754:	0309899b          	addiw	s3,s3,48
-    80006758:	f9360023          	sb	s3,-128(a2)
+    8000686a:	47a5                	li	a5,9
+    8000686c:	1937c463          	blt	a5,s3,800069f4 <audit_log_event+0x2e8>
+    80006870:	00268793          	addi	a5,a3,2
+    80006874:	fc060693          	addi	a3,a2,-64
+    80006878:	00868633          	add	a2,a3,s0
+    8000687c:	0309899b          	addiw	s3,s3,48
+    80006880:	f9360023          	sb	s3,-128(a2)
     line[off++] = '|';
-    8000675c:	0017861b          	addiw	a2,a5,1
-    80006760:	07c00593          	li	a1,124
-    80006764:	fc078693          	addi	a3,a5,-64
-    80006768:	96a2                	add	a3,a3,s0
-    8000676a:	f8b68023          	sb	a1,-128(a3)
+    80006884:	0017861b          	addiw	a2,a5,1
+    80006888:	07c00593          	li	a1,124
+    8000688c:	fc078693          	addi	a3,a5,-64
+    80006890:	96a2                	add	a3,a3,s0
+    80006892:	f8b68023          	sb	a1,-128(a3)
     if (syscall_num < 10) line[off++] = '0' + syscall_num;
-    8000676e:	46a5                	li	a3,9
-    80006770:	1b26c163          	blt	a3,s2,80006912 <audit_log_event+0x32e>
-    80006774:	0027859b          	addiw	a1,a5,2
-    80006778:	fc060793          	addi	a5,a2,-64
-    8000677c:	00878633          	add	a2,a5,s0
-    80006780:	0309091b          	addiw	s2,s2,48
-    80006784:	f9260023          	sb	s2,-128(a2)
+    80006896:	46a5                	li	a3,9
+    80006898:	1b26c163          	blt	a3,s2,80006a3a <audit_log_event+0x32e>
+    8000689c:	0027859b          	addiw	a1,a5,2
+    800068a0:	fc060793          	addi	a5,a2,-64
+    800068a4:	00878633          	add	a2,a5,s0
+    800068a8:	0309091b          	addiw	s2,s2,48
+    800068ac:	f9260023          	sb	s2,-128(a2)
     line[off++] = '|';
-    80006788:	0015851b          	addiw	a0,a1,1
-    8000678c:	07c00693          	li	a3,124
-    80006790:	fc058793          	addi	a5,a1,-64
-    80006794:	97a2                	add	a5,a5,s0
-    80006796:	f8d78023          	sb	a3,-128(a5)
+    800068b0:	0015851b          	addiw	a0,a1,1
+    800068b4:	07c00693          	li	a3,124
+    800068b8:	fc058793          	addi	a5,a1,-64
+    800068bc:	97a2                	add	a5,a5,s0
+    800068be:	f8d78023          	sb	a3,-128(a5)
     for (int i = 0; syscall_name[i] && off < 100; i++)
-    8000679a:	00074603          	lbu	a2,0(a4)
-    8000679e:	c215                	beqz	a2,800067c2 <audit_log_event+0x1de>
-    800067a0:	f4040693          	addi	a3,s0,-192
-    800067a4:	96aa                	add	a3,a3,a0
-    800067a6:	0705                	addi	a4,a4,1
+    800068c2:	00074603          	lbu	a2,0(a4)
+    800068c6:	c215                	beqz	a2,800068ea <audit_log_event+0x1de>
+    800068c8:	f4040693          	addi	a3,s0,-192
+    800068cc:	96aa                	add	a3,a3,a0
+    800068ce:	0705                	addi	a4,a4,1
         line[off++] = syscall_name[i];
-    800067a8:	0015079b          	addiw	a5,a0,1
-    800067ac:	853e                	mv	a0,a5
-    800067ae:	00c68023          	sb	a2,0(a3)
+    800068d0:	0015079b          	addiw	a5,a0,1
+    800068d4:	853e                	mv	a0,a5
+    800068d6:	00c68023          	sb	a2,0(a3)
     for (int i = 0; syscall_name[i] && off < 100; i++)
-    800067b2:	00074603          	lbu	a2,0(a4)
-    800067b6:	0685                	addi	a3,a3,1
-    800067b8:	0705                	addi	a4,a4,1
-    800067ba:	0647a793          	slti	a5,a5,100
-    800067be:	c391                	beqz	a5,800067c2 <audit_log_event+0x1de>
-    800067c0:	f665                	bnez	a2,800067a8 <audit_log_event+0x1c4>
+    800068da:	00074603          	lbu	a2,0(a4)
+    800068de:	0685                	addi	a3,a3,1
+    800068e0:	0705                	addi	a4,a4,1
+    800068e2:	0647a793          	slti	a5,a5,100
+    800068e6:	c391                	beqz	a5,800068ea <audit_log_event+0x1de>
+    800068e8:	f665                	bnez	a2,800068d0 <audit_log_event+0x1c4>
     line[off++] = '|';
-    800067c2:	0015091b          	addiw	s2,a0,1
-    800067c6:	07c00713          	li	a4,124
-    800067ca:	fc050793          	addi	a5,a0,-64
-    800067ce:	97a2                	add	a5,a5,s0
-    800067d0:	f8e78023          	sb	a4,-128(a5)
+    800068ea:	0015091b          	addiw	s2,a0,1
+    800068ee:	07c00713          	li	a4,124
+    800068f2:	fc050793          	addi	a5,a0,-64
+    800068f6:	97a2                	add	a5,a5,s0
+    800068f8:	f8e78023          	sb	a4,-128(a5)
     for (int i = 0; message[i] && off < 118; i++)
-    800067d4:	0004c583          	lbu	a1,0(s1)
-    800067d8:	c19d                	beqz	a1,800067fe <audit_log_event+0x21a>
-    800067da:	f4040613          	addi	a2,s0,-192
-    800067de:	964a                	add	a2,a2,s2
-    800067e0:	00148693          	addi	a3,s1,1
+    800068fc:	0004c583          	lbu	a1,0(s1)
+    80006900:	c19d                	beqz	a1,80006926 <audit_log_event+0x21a>
+    80006902:	f4040613          	addi	a2,s0,-192
+    80006906:	964a                	add	a2,a2,s2
+    80006908:	00148693          	addi	a3,s1,1
         line[off++] = message[i];
-    800067e4:	0019079b          	addiw	a5,s2,1
-    800067e8:	893e                	mv	s2,a5
-    800067ea:	00b60023          	sb	a1,0(a2)
+    8000690c:	0019079b          	addiw	a5,s2,1
+    80006910:	893e                	mv	s2,a5
+    80006912:	00b60023          	sb	a1,0(a2)
     for (int i = 0; message[i] && off < 118; i++)
-    800067ee:	0006c583          	lbu	a1,0(a3)
-    800067f2:	0605                	addi	a2,a2,1
-    800067f4:	0685                	addi	a3,a3,1
-    800067f6:	0767a793          	slti	a5,a5,118
-    800067fa:	c391                	beqz	a5,800067fe <audit_log_event+0x21a>
-    800067fc:	f5e5                	bnez	a1,800067e4 <audit_log_event+0x200>
+    80006916:	0006c583          	lbu	a1,0(a3)
+    8000691a:	0605                	addi	a2,a2,1
+    8000691c:	0685                	addi	a3,a3,1
+    8000691e:	0767a793          	slti	a5,a5,118
+    80006922:	c391                	beqz	a5,80006926 <audit_log_event+0x21a>
+    80006924:	f5e5                	bnez	a1,8000690c <audit_log_event+0x200>
     line[off++] = '\n';
-    800067fe:	4729                	li	a4,10
-    80006800:	fc090793          	addi	a5,s2,-64
-    80006804:	97a2                	add	a5,a5,s0
-    80006806:	f8e78023          	sb	a4,-128(a5)
+    80006926:	4729                	li	a4,10
+    80006928:	fc090793          	addi	a5,s2,-64
+    8000692c:	97a2                	add	a5,a5,s0
+    8000692e:	f8e78023          	sb	a4,-128(a5)
     struct inode *ip = namei("syscall.log");
-    8000680a:	00002517          	auipc	a0,0x2
-    8000680e:	1fe50513          	addi	a0,a0,510 # 80008a08 <etext+0xa08>
-    80006812:	af4fd0ef          	jal	80003b06 <namei>
-    80006816:	84aa                	mv	s1,a0
+    80006932:	00002517          	auipc	a0,0x2
+    80006936:	0d650513          	addi	a0,a0,214 # 80008a08 <etext+0xa08>
+    8000693a:	9ccfd0ef          	jal	80003b06 <namei>
+    8000693e:	84aa                	mv	s1,a0
     if (!ip) return;
-    80006818:	cd0d                	beqz	a0,80006852 <audit_log_event+0x26e>
+    80006940:	cd0d                	beqz	a0,8000697a <audit_log_event+0x26e>
     begin_op();
-    8000681a:	ccafd0ef          	jal	80003ce4 <begin_op>
+    80006942:	ba2fd0ef          	jal	80003ce4 <begin_op>
     ilock(ip);
-    8000681e:	8526                	mv	a0,s1
-    80006820:	a93fc0ef          	jal	800032b2 <ilock>
+    80006946:	8526                	mv	a0,s1
+    80006948:	96bfc0ef          	jal	800032b2 <ilock>
     line[off++] = '\n';
-    80006824:	2905                	addiw	s2,s2,1
+    8000694c:	2905                	addiw	s2,s2,1
     if (writei(ip, 0, (uint64)line, ip->size, off) > 0) {
-    80006826:	874a                	mv	a4,s2
-    80006828:	44f4                	lw	a3,76(s1)
-    8000682a:	f4040613          	addi	a2,s0,-192
-    8000682e:	4581                	li	a1,0
-    80006830:	8526                	mv	a0,s1
-    80006832:	f2bfc0ef          	jal	8000375c <writei>
-    80006836:	00a05663          	blez	a0,80006842 <audit_log_event+0x25e>
+    8000694e:	874a                	mv	a4,s2
+    80006950:	44f4                	lw	a3,76(s1)
+    80006952:	f4040613          	addi	a2,s0,-192
+    80006956:	4581                	li	a1,0
+    80006958:	8526                	mv	a0,s1
+    8000695a:	e03fc0ef          	jal	8000375c <writei>
+    8000695e:	00a05663          	blez	a0,8000696a <audit_log_event+0x25e>
         ip->size += off;  // Update size
-    8000683a:	44fc                	lw	a5,76(s1)
-    8000683c:	012787bb          	addw	a5,a5,s2
-    80006840:	c4fc                	sw	a5,76(s1)
+    80006962:	44fc                	lw	a5,76(s1)
+    80006964:	012787bb          	addw	a5,a5,s2
+    80006968:	c4fc                	sw	a5,76(s1)
     iunlock(ip);
-    80006842:	8526                	mv	a0,s1
-    80006844:	b3ffc0ef          	jal	80003382 <iunlock>
+    8000696a:	8526                	mv	a0,s1
+    8000696c:	a17fc0ef          	jal	80003382 <iunlock>
     end_op();
-    80006848:	d0cfd0ef          	jal	80003d54 <end_op>
+    80006970:	be4fd0ef          	jal	80003d54 <end_op>
     iput(ip);
-    8000684c:	8526                	mv	a0,s1
-    8000684e:	c09fc0ef          	jal	80003456 <iput>
+    80006974:	8526                	mv	a0,s1
+    80006976:	ae1fc0ef          	jal	80003456 <iput>
 }
-    80006852:	70ea                	ld	ra,184(sp)
-    80006854:	744a                	ld	s0,176(sp)
-    80006856:	74aa                	ld	s1,168(sp)
-    80006858:	790a                	ld	s2,160(sp)
-    8000685a:	69ea                	ld	s3,152(sp)
-    8000685c:	6a4a                	ld	s4,144(sp)
-    8000685e:	6aaa                	ld	s5,136(sp)
-    80006860:	6b0a                	ld	s6,128(sp)
-    80006862:	6129                	addi	sp,sp,192
-    80006864:	8082                	ret
+    8000697a:	70ea                	ld	ra,184(sp)
+    8000697c:	744a                	ld	s0,176(sp)
+    8000697e:	74aa                	ld	s1,168(sp)
+    80006980:	790a                	ld	s2,160(sp)
+    80006982:	69ea                	ld	s3,152(sp)
+    80006984:	6a4a                	ld	s4,144(sp)
+    80006986:	6aaa                	ld	s5,136(sp)
+    80006988:	6b0a                	ld	s6,128(sp)
+    8000698a:	6129                	addi	sp,sp,192
+    8000698c:	8082                	ret
         g_audit.tail = (g_audit.tail + 1) % AUDIT_MAX;
-    80006866:	00028697          	auipc	a3,0x28
-    8000686a:	b5268693          	addi	a3,a3,-1198 # 8002e3b8 <g_audit+0xb000>
-    8000686e:	4046a783          	lw	a5,1028(a3)
-    80006872:	2785                	addiw	a5,a5,1
-    80006874:	41f7d71b          	sraiw	a4,a5,0x1f
-    80006878:	0187571b          	srliw	a4,a4,0x18
-    8000687c:	9fb9                	addw	a5,a5,a4
-    8000687e:	0ff7f793          	zext.b	a5,a5
-    80006882:	9f99                	subw	a5,a5,a4
-    80006884:	40f6a223          	sw	a5,1028(a3)
+    8000698e:	00028697          	auipc	a3,0x28
+    80006992:	a2a68693          	addi	a3,a3,-1494 # 8002e3b8 <g_audit+0xb000>
+    80006996:	4046a783          	lw	a5,1028(a3)
+    8000699a:	2785                	addiw	a5,a5,1
+    8000699c:	41f7d71b          	sraiw	a4,a5,0x1f
+    800069a0:	0187571b          	srliw	a4,a4,0x18
+    800069a4:	9fb9                	addw	a5,a5,a4
+    800069a6:	0ff7f793          	zext.b	a5,a5
+    800069aa:	9f99                	subw	a5,a5,a4
+    800069ac:	40f6a223          	sw	a5,1028(a3)
         printf("audit: WARNING: ring buffer full, oldest entry dropped\n");
-    80006888:	00002517          	auipc	a0,0x2
-    8000688c:	14850513          	addi	a0,a0,328 # 800089d0 <etext+0x9d0>
-    80006890:	c6bf90ef          	jal	800004fa <printf>
-    80006894:	bd9d                	j	8000670a <audit_log_event+0x126>
+    800069b0:	00002517          	auipc	a0,0x2
+    800069b4:	02050513          	addi	a0,a0,32 # 800089d0 <etext+0x9d0>
+    800069b8:	b43f90ef          	jal	800004fa <printf>
+    800069bc:	bd9d                	j	80006832 <audit_log_event+0x126>
         line[off++] = '0' + (pid / 10);
-    80006896:	666667b7          	lui	a5,0x66666
-    8000689a:	66778793          	addi	a5,a5,1639 # 66666667 <_entry-0x19999999>
-    8000689e:	02fa07b3          	mul	a5,s4,a5
-    800068a2:	9789                	srai	a5,a5,0x22
-    800068a4:	41fa569b          	sraiw	a3,s4,0x1f
-    800068a8:	9f95                	subw	a5,a5,a3
-    800068aa:	0307869b          	addiw	a3,a5,48
-    800068ae:	f4d40023          	sb	a3,-192(s0)
+    800069be:	666667b7          	lui	a5,0x66666
+    800069c2:	66778793          	addi	a5,a5,1639 # 66666667 <_entry-0x19999999>
+    800069c6:	02fa07b3          	mul	a5,s4,a5
+    800069ca:	9789                	srai	a5,a5,0x22
+    800069cc:	41fa569b          	sraiw	a3,s4,0x1f
+    800069d0:	9f95                	subw	a5,a5,a3
+    800069d2:	0307869b          	addiw	a3,a5,48
+    800069d6:	f4d40023          	sb	a3,-192(s0)
         line[off++] = '0' + (pid % 10);
-    800068b2:	0027969b          	slliw	a3,a5,0x2
-    800068b6:	9fb5                	addw	a5,a5,a3
-    800068b8:	0017979b          	slliw	a5,a5,0x1
-    800068bc:	40fa0a3b          	subw	s4,s4,a5
-    800068c0:	030a0a1b          	addiw	s4,s4,48
-    800068c4:	f54400a3          	sb	s4,-191(s0)
-    800068c8:	4689                	li	a3,2
-    800068ca:	b59d                	j	80006730 <audit_log_event+0x14c>
+    800069da:	0027969b          	slliw	a3,a5,0x2
+    800069de:	9fb5                	addw	a5,a5,a3
+    800069e0:	0017979b          	slliw	a5,a5,0x1
+    800069e4:	40fa0a3b          	subw	s4,s4,a5
+    800069e8:	030a0a1b          	addiw	s4,s4,48
+    800069ec:	f54400a3          	sb	s4,-191(s0)
+    800069f0:	4689                	li	a3,2
+    800069f2:	b59d                	j	80006858 <audit_log_event+0x14c>
         line[off++] = '0' + (uid / 10);
-    800068cc:	fc060793          	addi	a5,a2,-64
-    800068d0:	97a2                	add	a5,a5,s0
-    800068d2:	66666637          	lui	a2,0x66666
-    800068d6:	66760613          	addi	a2,a2,1639 # 66666667 <_entry-0x19999999>
-    800068da:	02c98633          	mul	a2,s3,a2
-    800068de:	9609                	srai	a2,a2,0x22
-    800068e0:	41f9d59b          	sraiw	a1,s3,0x1f
-    800068e4:	9e0d                	subw	a2,a2,a1
-    800068e6:	0306059b          	addiw	a1,a2,48
-    800068ea:	f8b78023          	sb	a1,-128(a5)
+    800069f4:	fc060793          	addi	a5,a2,-64
+    800069f8:	97a2                	add	a5,a5,s0
+    800069fa:	66666637          	lui	a2,0x66666
+    800069fe:	66760613          	addi	a2,a2,1639 # 66666667 <_entry-0x19999999>
+    80006a02:	02c98633          	mul	a2,s3,a2
+    80006a06:	9609                	srai	a2,a2,0x22
+    80006a08:	41f9d59b          	sraiw	a1,s3,0x1f
+    80006a0c:	9e0d                	subw	a2,a2,a1
+    80006a0e:	0306059b          	addiw	a1,a2,48
+    80006a12:	f8b78023          	sb	a1,-128(a5)
         line[off++] = '0' + (uid % 10);
-    800068ee:	00368793          	addi	a5,a3,3
+    80006a16:	00368793          	addi	a5,a3,3
         line[off++] = '0' + (uid / 10);
-    800068f2:	2689                	addiw	a3,a3,2
+    80006a1a:	2689                	addiw	a3,a3,2
         line[off++] = '0' + (uid % 10);
-    800068f4:	fc068693          	addi	a3,a3,-64
-    800068f8:	96a2                	add	a3,a3,s0
-    800068fa:	0026159b          	slliw	a1,a2,0x2
-    800068fe:	9e2d                	addw	a2,a2,a1
-    80006900:	0016161b          	slliw	a2,a2,0x1
-    80006904:	40c989bb          	subw	s3,s3,a2
-    80006908:	0309899b          	addiw	s3,s3,48
-    8000690c:	f9368023          	sb	s3,-128(a3)
-    80006910:	b5b1                	j	8000675c <audit_log_event+0x178>
+    80006a1c:	fc068693          	addi	a3,a3,-64
+    80006a20:	96a2                	add	a3,a3,s0
+    80006a22:	0026159b          	slliw	a1,a2,0x2
+    80006a26:	9e2d                	addw	a2,a2,a1
+    80006a28:	0016161b          	slliw	a2,a2,0x1
+    80006a2c:	40c989bb          	subw	s3,s3,a2
+    80006a30:	0309899b          	addiw	s3,s3,48
+    80006a34:	f9368023          	sb	s3,-128(a3)
+    80006a38:	b5b1                	j	80006884 <audit_log_event+0x178>
         line[off++] = '0' + (syscall_num / 10);
-    80006912:	fc060693          	addi	a3,a2,-64
-    80006916:	00868633          	add	a2,a3,s0
-    8000691a:	666666b7          	lui	a3,0x66666
-    8000691e:	66768693          	addi	a3,a3,1639 # 66666667 <_entry-0x19999999>
-    80006922:	02d906b3          	mul	a3,s2,a3
-    80006926:	9689                	srai	a3,a3,0x22
-    80006928:	41f9559b          	sraiw	a1,s2,0x1f
-    8000692c:	9e8d                	subw	a3,a3,a1
-    8000692e:	0306859b          	addiw	a1,a3,48
-    80006932:	f8b60023          	sb	a1,-128(a2)
+    80006a3a:	fc060693          	addi	a3,a2,-64
+    80006a3e:	00868633          	add	a2,a3,s0
+    80006a42:	666666b7          	lui	a3,0x66666
+    80006a46:	66768693          	addi	a3,a3,1639 # 66666667 <_entry-0x19999999>
+    80006a4a:	02d906b3          	mul	a3,s2,a3
+    80006a4e:	9689                	srai	a3,a3,0x22
+    80006a50:	41f9559b          	sraiw	a1,s2,0x1f
+    80006a54:	9e8d                	subw	a3,a3,a1
+    80006a56:	0306859b          	addiw	a1,a3,48
+    80006a5a:	f8b60023          	sb	a1,-128(a2)
         line[off++] = '0' + (syscall_num % 10);
-    80006936:	0037859b          	addiw	a1,a5,3
+    80006a5e:	0037859b          	addiw	a1,a5,3
         line[off++] = '0' + (syscall_num / 10);
-    8000693a:	2789                	addiw	a5,a5,2
+    80006a62:	2789                	addiw	a5,a5,2
         line[off++] = '0' + (syscall_num % 10);
-    8000693c:	fc078793          	addi	a5,a5,-64
-    80006940:	97a2                	add	a5,a5,s0
-    80006942:	0026961b          	slliw	a2,a3,0x2
-    80006946:	9eb1                	addw	a3,a3,a2
-    80006948:	0016969b          	slliw	a3,a3,0x1
-    8000694c:	40d9093b          	subw	s2,s2,a3
-    80006950:	0309091b          	addiw	s2,s2,48
-    80006954:	f9278023          	sb	s2,-128(a5)
-    80006958:	bd05                	j	80006788 <audit_log_event+0x1a4>
+    80006a64:	fc078793          	addi	a5,a5,-64
+    80006a68:	97a2                	add	a5,a5,s0
+    80006a6a:	0026961b          	slliw	a2,a3,0x2
+    80006a6e:	9eb1                	addw	a3,a3,a2
+    80006a70:	0016969b          	slliw	a3,a3,0x1
+    80006a74:	40d9093b          	subw	s2,s2,a3
+    80006a78:	0309091b          	addiw	s2,s2,48
+    80006a7c:	f9278023          	sb	s2,-128(a5)
+    80006a80:	bd05                	j	800068b0 <audit_log_event+0x1a4>
 
-000000008000695a <sys_audit_read>:
+0000000080006a82 <sys_audit_read>:
 // sys_audit_read — Export audit log to user space (ADMIN only)
 // Returns -1 (EPERM) if caller is not uid=0
 // =============================================================
 uint64
 sys_audit_read(void)
 {
-    8000695a:	711d                	addi	sp,sp,-96
-    8000695c:	ec86                	sd	ra,88(sp)
-    8000695e:	e8a2                	sd	s0,80(sp)
-    80006960:	fc4e                	sd	s3,56(sp)
-    80006962:	ec5e                	sd	s7,24(sp)
-    80006964:	1080                	addi	s0,sp,96
+    80006a82:	711d                	addi	sp,sp,-96
+    80006a84:	ec86                	sd	ra,88(sp)
+    80006a86:	e8a2                	sd	s0,80(sp)
+    80006a88:	fc4e                	sd	s3,56(sp)
+    80006a8a:	ec5e                	sd	s7,24(sp)
+    80006a8c:	1080                	addi	s0,sp,96
     struct proc *p = myproc();
-    80006966:	fd1fa0ef          	jal	80001936 <myproc>
-    8000696a:	8baa                	mv	s7,a0
+    80006a8e:	ea9fa0ef          	jal	80001936 <myproc>
+    80006a92:	8baa                	mv	s7,a0
 
     // WHY hard block on non-admin: audit logs contain sensitive
     // operational data; a patient or doctor reading it could learn
     // timing patterns about the insulin pump's behavior
     if (p->creds.uid != ROLE_ADMIN) {
-    8000696c:	16852983          	lw	s3,360(a0)
-    80006970:	04099f63          	bnez	s3,800069ce <sys_audit_read+0x74>
+    80006a94:	16852983          	lw	s3,360(a0)
+    80006a98:	04099f63          	bnez	s3,80006af6 <sys_audit_read+0x74>
     }
 
     // Arguments: user buffer pointer, max bytes to copy
     uint64 user_buf;
     int    max_bytes;
     if (argaddr(0, &user_buf) < 0 || argint(1, &max_bytes) < 0)
-    80006974:	fa840593          	addi	a1,s0,-88
-    80006978:	4501                	li	a0,0
-    8000697a:	f43fb0ef          	jal	800028bc <argaddr>
+    80006a9c:	fa840593          	addi	a1,s0,-88
+    80006aa0:	4501                	li	a0,0
+    80006aa2:	e1bfb0ef          	jal	800028bc <argaddr>
         return -1;
-    8000697e:	57fd                	li	a5,-1
+    80006aa6:	57fd                	li	a5,-1
     if (argaddr(0, &user_buf) < 0 || argint(1, &max_bytes) < 0)
-    80006980:	0c054a63          	bltz	a0,80006a54 <sys_audit_read+0xfa>
-    80006984:	fa440593          	addi	a1,s0,-92
-    80006988:	4505                	li	a0,1
-    8000698a:	f15fb0ef          	jal	8000289e <argint>
+    80006aa8:	0c054a63          	bltz	a0,80006b7c <sys_audit_read+0xfa>
+    80006aac:	fa440593          	addi	a1,s0,-92
+    80006ab0:	4505                	li	a0,1
+    80006ab2:	dedfb0ef          	jal	8000289e <argint>
         return -1;
-    8000698e:	57fd                	li	a5,-1
+    80006ab6:	57fd                	li	a5,-1
     if (argaddr(0, &user_buf) < 0 || argint(1, &max_bytes) < 0)
-    80006990:	0c054263          	bltz	a0,80006a54 <sys_audit_read+0xfa>
-    80006994:	f05a                	sd	s6,32(sp)
+    80006ab8:	0c054263          	bltz	a0,80006b7c <sys_audit_read+0xfa>
+    80006abc:	f05a                	sd	s6,32(sp)
     // Serialize ring buffer into text format for user space
     // WHY text format: easier for user-space to display/parse;
     // binary format would require matching structs
     int  written = 0;
 
     acquire(&g_audit.lock);
-    80006996:	00028517          	auipc	a0,0x28
-    8000699a:	e3250513          	addi	a0,a0,-462 # 8002e7c8 <g_audit+0xb410>
-    8000699e:	a8afa0ef          	jal	80000c28 <acquire>
+    80006abe:	00028517          	auipc	a0,0x28
+    80006ac2:	d0a50513          	addi	a0,a0,-758 # 8002e7c8 <g_audit+0xb410>
+    80006ac6:	962fa0ef          	jal	80000c28 <acquire>
 
     int idx   = g_audit.tail;
     int count = g_audit.count;
-    800069a2:	00028b17          	auipc	s6,0x28
-    800069a6:	e1eb2b03          	lw	s6,-482(s6) # 8002e7c0 <g_audit+0xb408>
+    80006aca:	00028b17          	auipc	s6,0x28
+    80006ace:	cf6b2b03          	lw	s6,-778(s6) # 8002e7c0 <g_audit+0xb408>
 
     for (int i = 0; i < count && written < max_bytes - 1; i++) {
-    800069aa:	09605d63          	blez	s6,80006a44 <sys_audit_read+0xea>
-    800069ae:	e4a6                	sd	s1,72(sp)
-    800069b0:	e0ca                	sd	s2,64(sp)
-    800069b2:	f852                	sd	s4,48(sp)
-    800069b4:	f456                	sd	s5,40(sp)
+    80006ad2:	09605d63          	blez	s6,80006b6c <sys_audit_read+0xea>
+    80006ad6:	e4a6                	sd	s1,72(sp)
+    80006ad8:	e0ca                	sd	s2,64(sp)
+    80006ada:	f852                	sd	s4,48(sp)
+    80006adc:	f456                	sd	s5,40(sp)
     int idx   = g_audit.tail;
-    800069b6:	00028497          	auipc	s1,0x28
-    800069ba:	e064a483          	lw	s1,-506(s1) # 8002e7bc <g_audit+0xb404>
+    80006ade:	00028497          	auipc	s1,0x28
+    80006ae2:	cde4a483          	lw	s1,-802(s1) # 8002e7bc <g_audit+0xb404>
     for (int i = 0; i < count && written < max_bytes - 1; i++) {
-    800069be:	894e                	mv	s2,s3
+    80006ae6:	894e                	mv	s2,s3
         struct audit_entry *e = &g_audit.buf[idx];
         if (e->valid) {
-    800069c0:	0001da97          	auipc	s5,0x1d
-    800069c4:	9f8a8a93          	addi	s5,s5,-1544 # 800233b8 <g_audit>
-    800069c8:	0b400a13          	li	s4,180
-    800069cc:	a805                	j	800069fc <sys_audit_read+0xa2>
+    80006ae8:	0001da97          	auipc	s5,0x1d
+    80006aec:	8d0a8a93          	addi	s5,s5,-1840 # 800233b8 <g_audit>
+    80006af0:	0b400a13          	li	s4,180
+    80006af4:	a805                	j	80006b24 <sys_audit_read+0xa2>
         audit_log_event(p->pid, p->creds.uid, SYS_audit_read,
-    800069ce:	00002697          	auipc	a3,0x2
-    800069d2:	04a68693          	addi	a3,a3,74 # 80008a18 <etext+0xa18>
-    800069d6:	4675                	li	a2,29
-    800069d8:	85ce                	mv	a1,s3
-    800069da:	5908                	lw	a0,48(a0)
-    800069dc:	c09ff0ef          	jal	800065e4 <audit_log_event>
+    80006af6:	00002697          	auipc	a3,0x2
+    80006afa:	f2268693          	addi	a3,a3,-222 # 80008a18 <etext+0xa18>
+    80006afe:	4675                	li	a2,29
+    80006b00:	85ce                	mv	a1,s3
+    80006b02:	5908                	lw	a0,48(a0)
+    80006b04:	c09ff0ef          	jal	8000670c <audit_log_event>
         return -1;  // EPERM
-    800069e0:	57fd                	li	a5,-1
-    800069e2:	a88d                	j	80006a54 <sys_audit_read+0xfa>
+    80006b08:	57fd                	li	a5,-1
+    80006b0a:	a88d                	j	80006b7c <sys_audit_read+0xfa>
                             (char*)e, sizeof(struct audit_entry)) < 0)
                     break;
                 written += sizeof(struct audit_entry);
             }
         }
         idx = (idx + 1) % AUDIT_MAX;
-    800069e4:	2485                	addiw	s1,s1,1
-    800069e6:	41f4d79b          	sraiw	a5,s1,0x1f
-    800069ea:	0187d79b          	srliw	a5,a5,0x18
-    800069ee:	9cbd                	addw	s1,s1,a5
-    800069f0:	0ff4f493          	zext.b	s1,s1
-    800069f4:	9c9d                	subw	s1,s1,a5
+    80006b0c:	2485                	addiw	s1,s1,1
+    80006b0e:	41f4d79b          	sraiw	a5,s1,0x1f
+    80006b12:	0187d79b          	srliw	a5,a5,0x18
+    80006b16:	9cbd                	addw	s1,s1,a5
+    80006b18:	0ff4f493          	zext.b	s1,s1
+    80006b1c:	9c9d                	subw	s1,s1,a5
     for (int i = 0; i < count && written < max_bytes - 1; i++) {
-    800069f6:	2905                	addiw	s2,s2,1
-    800069f8:	072b0a63          	beq	s6,s2,80006a6c <sys_audit_read+0x112>
-    800069fc:	fa442703          	lw	a4,-92(s0)
-    80006a00:	fff7079b          	addiw	a5,a4,-1
-    80006a04:	02f9dc63          	bge	s3,a5,80006a3c <sys_audit_read+0xe2>
+    80006b1e:	2905                	addiw	s2,s2,1
+    80006b20:	072b0a63          	beq	s6,s2,80006b94 <sys_audit_read+0x112>
+    80006b24:	fa442703          	lw	a4,-92(s0)
+    80006b28:	fff7079b          	addiw	a5,a4,-1
+    80006b2c:	02f9dc63          	bge	s3,a5,80006b64 <sys_audit_read+0xe2>
         if (e->valid) {
-    80006a08:	034487b3          	mul	a5,s1,s4
-    80006a0c:	97d6                	add	a5,a5,s5
-    80006a0e:	0b07a783          	lw	a5,176(a5)
-    80006a12:	dbe9                	beqz	a5,800069e4 <sys_audit_read+0x8a>
+    80006b30:	034487b3          	mul	a5,s1,s4
+    80006b34:	97d6                	add	a5,a5,s5
+    80006b36:	0b07a783          	lw	a5,176(a5)
+    80006b3a:	dbe9                	beqz	a5,80006b0c <sys_audit_read+0x8a>
             if (written + (int)sizeof(struct audit_entry) <= max_bytes) {
-    80006a14:	0b39879b          	addiw	a5,s3,179
-    80006a18:	fce7d6e3          	bge	a5,a4,800069e4 <sys_audit_read+0x8a>
+    80006b3c:	0b39879b          	addiw	a5,s3,179
+    80006b40:	fce7d6e3          	bge	a5,a4,80006b0c <sys_audit_read+0x8a>
         struct audit_entry *e = &g_audit.buf[idx];
-    80006a1c:	03448633          	mul	a2,s1,s4
+    80006b44:	03448633          	mul	a2,s1,s4
                 if (copyout(p->pagetable, user_buf + written,
-    80006a20:	86d2                	mv	a3,s4
-    80006a22:	9656                	add	a2,a2,s5
-    80006a24:	fa843583          	ld	a1,-88(s0)
-    80006a28:	95ce                	add	a1,a1,s3
-    80006a2a:	050bb503          	ld	a0,80(s7)
-    80006a2e:	c2ffa0ef          	jal	8000165c <copyout>
-    80006a32:	02054863          	bltz	a0,80006a62 <sys_audit_read+0x108>
+    80006b48:	86d2                	mv	a3,s4
+    80006b4a:	9656                	add	a2,a2,s5
+    80006b4c:	fa843583          	ld	a1,-88(s0)
+    80006b50:	95ce                	add	a1,a1,s3
+    80006b52:	050bb503          	ld	a0,80(s7)
+    80006b56:	b07fa0ef          	jal	8000165c <copyout>
+    80006b5a:	02054863          	bltz	a0,80006b8a <sys_audit_read+0x108>
                 written += sizeof(struct audit_entry);
-    80006a36:	0b49899b          	addiw	s3,s3,180
-    80006a3a:	b76d                	j	800069e4 <sys_audit_read+0x8a>
-    80006a3c:	64a6                	ld	s1,72(sp)
-    80006a3e:	6906                	ld	s2,64(sp)
-    80006a40:	7a42                	ld	s4,48(sp)
-    80006a42:	7aa2                	ld	s5,40(sp)
+    80006b5e:	0b49899b          	addiw	s3,s3,180
+    80006b62:	b76d                	j	80006b0c <sys_audit_read+0x8a>
+    80006b64:	64a6                	ld	s1,72(sp)
+    80006b66:	6906                	ld	s2,64(sp)
+    80006b68:	7a42                	ld	s4,48(sp)
+    80006b6a:	7aa2                	ld	s5,40(sp)
     }
 
     release(&g_audit.lock);
-    80006a44:	00028517          	auipc	a0,0x28
-    80006a48:	d8450513          	addi	a0,a0,-636 # 8002e7c8 <g_audit+0xb410>
-    80006a4c:	a70fa0ef          	jal	80000cbc <release>
+    80006b6c:	00028517          	auipc	a0,0x28
+    80006b70:	c5c50513          	addi	a0,a0,-932 # 8002e7c8 <g_audit+0xb410>
+    80006b74:	948fa0ef          	jal	80000cbc <release>
     return written;
-    80006a50:	87ce                	mv	a5,s3
-    80006a52:	7b02                	ld	s6,32(sp)
+    80006b78:	87ce                	mv	a5,s3
+    80006b7a:	7b02                	ld	s6,32(sp)
 }
-    80006a54:	853e                	mv	a0,a5
-    80006a56:	60e6                	ld	ra,88(sp)
-    80006a58:	6446                	ld	s0,80(sp)
-    80006a5a:	79e2                	ld	s3,56(sp)
-    80006a5c:	6be2                	ld	s7,24(sp)
-    80006a5e:	6125                	addi	sp,sp,96
-    80006a60:	8082                	ret
-    80006a62:	64a6                	ld	s1,72(sp)
-    80006a64:	6906                	ld	s2,64(sp)
-    80006a66:	7a42                	ld	s4,48(sp)
-    80006a68:	7aa2                	ld	s5,40(sp)
-    80006a6a:	bfe9                	j	80006a44 <sys_audit_read+0xea>
-    80006a6c:	64a6                	ld	s1,72(sp)
-    80006a6e:	6906                	ld	s2,64(sp)
-    80006a70:	7a42                	ld	s4,48(sp)
-    80006a72:	7aa2                	ld	s5,40(sp)
-    80006a74:	bfc1                	j	80006a44 <sys_audit_read+0xea>
+    80006b7c:	853e                	mv	a0,a5
+    80006b7e:	60e6                	ld	ra,88(sp)
+    80006b80:	6446                	ld	s0,80(sp)
+    80006b82:	79e2                	ld	s3,56(sp)
+    80006b84:	6be2                	ld	s7,24(sp)
+    80006b86:	6125                	addi	sp,sp,96
+    80006b88:	8082                	ret
+    80006b8a:	64a6                	ld	s1,72(sp)
+    80006b8c:	6906                	ld	s2,64(sp)
+    80006b8e:	7a42                	ld	s4,48(sp)
+    80006b90:	7aa2                	ld	s5,40(sp)
+    80006b92:	bfe9                	j	80006b6c <sys_audit_read+0xea>
+    80006b94:	64a6                	ld	s1,72(sp)
+    80006b96:	6906                	ld	s2,64(sp)
+    80006b98:	7a42                	ld	s4,48(sp)
+    80006b9a:	7aa2                	ld	s5,40(sp)
+    80006b9c:	bfc1                	j	80006b6c <sys_audit_read+0xea>
 	...
 
 0000000080007000 <_trampoline>:
