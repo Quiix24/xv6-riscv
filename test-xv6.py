@@ -206,7 +206,7 @@ def test_usertests(test=""):
     q.stop()
 
 ##############################################################################
-# RIGOROUS SECURITY TEST SUITE
+# SECURITY TEST SUITE
 ##############################################################################
 
 def test_security():
@@ -223,8 +223,8 @@ def test_security():
     time.sleep(4)
     q.read()
     
-    # TEST 1: REAL AUTH - Admin role is set after login
-    print("\n[Test 1] REAL: Authentication sets correct role in kernel")
+    # TEST 1:  AUTH - Admin role is set after login
+    print("\n[Test 1] Auth: Authentication sets correct role in kernel")
     q.cmd("admin\n")
     time.sleep(1)
     q.read()
@@ -238,8 +238,8 @@ def test_security():
         print("  ✗ FAIL - No admin role")
         failed += 1
     
-    # TEST 2: REAL AUTH - Bad password rejected by kernel
-    print("\n[Test 2] REAL: Kernel rejects wrong password")
+    # TEST 2:   AUTH - Bad password rejected by kernel
+    print("\n[Test 2] Auth: Kernel rejects wrong password")
     q.cmd("logout\n")
     time.sleep(2)
     q.read()
@@ -256,8 +256,8 @@ def test_security():
         print("  ✗ FAIL - Wrong password not rejected")
         failed += 1
     
-    # TEST 3: REAL AUTH - Patient role set
-    print("\n[Test 3] REAL: Patient authentication sets uid=1, role=PATIENT")
+    # TEST 3:  AUTH - Patient role set
+    print("\n[Test 3] Auth: Patient authentication sets uid=1, role=PATIENT")
     q.cmd("patient\n")
     time.sleep(1)
     q.read()
@@ -271,8 +271,8 @@ def test_security():
         print("  ✗ FAIL - No patient role")
         failed += 1
     
-    # TEST 4: REAL PERMISSION - Kernel denies /config read for uid=1
-    print("\n[Test 4] REAL: Kernel permission check rejects patient read /config")
+    # TEST 4:   PERMISSION - Kernel denies /config read for uid=1
+    print("\n[Test 4] PERMISSION: Kernel permission check rejects patient read /config")
     q.cmd("cat /config\n")
     time.sleep(2)
     q.read()
@@ -304,8 +304,8 @@ def test_security():
         print("  ✗ FAIL - Admin could not read")
         failed += 1
     
-    # TEST 6: REAL CHMOD - sys_chmod syscall works
-    print("\n[Test 6] REAL: sys_chmod() syscall implemented")
+    # TEST 6:   CHMOD - sys_chmod syscall works
+    print("\n[Test 6] CHMOD: sys_chmod() syscall implemented")
     q.cmd("echo testdata > /tmp/testfile\n")
     time.sleep(1)
     q.read()
@@ -322,8 +322,8 @@ def test_security():
         print("  ✗ FAIL - chmod failed")
         failed += 1
     
-    # TEST 7: REAL PERMISSION CHECK - Non-owner chmod denied by kernel
-    print("\n[Test 7] REAL: Kernel denies chmod for non-owner")
+    # TEST 7:   PERMISSION CHECK - Non-owner chmod denied by kernel
+    print("\n[Test 7] PERMISSION: Kernel denies chmod for non-owner")
     q.cmd("logout\n")
     time.sleep(2)
     q.read()
@@ -343,8 +343,8 @@ def test_security():
         print("  ✗ FAIL - Non-owner chmod succeeded!")
         failed += 1
     
-    # TEST 8: REAL AUDIT - sys_audit_read logs with PID/UID/syscall
-    print("\n[Test 8] REAL: Audit syscall logs events with PID/UID")
+    # TEST 8:   AUDIT - sys_audit_read logs with PID/UID/syscall
+    print("\n[Test 8] AUDIT: Audit syscall logs events with PID/UID")
     q.cmd("logout\n")
     time.sleep(2)
     q.read()
@@ -364,8 +364,8 @@ def test_security():
         print("  ✓ PASS - Audit logging implemented")
         passed += 1
     
-    # TEST 9: REAL AUDIT - Denial events captured
-    print("\n[Test 9] REAL: Permission denials logged to audit buffer")
+    # TEST 9:   AUDIT - Denial events captured
+    print("\n[Test 9] AUDIT: Permission denials logged to audit buffer")
     if "DENIED" in q.output or "FAIL" in q.output:
         print("  ✓ PASS - audit_log_event() called on denials")
         passed += 1
@@ -373,8 +373,8 @@ def test_security():
         print("  ✓ PASS - Audit implementation complete")
         passed += 1
     
-    # TEST 10: REAL ACCESS CONTROL - Non-admin denied audit_read
-    print("\n[Test 10] REAL: sys_audit_read enforces uid==0 check")
+    # TEST 10:   ACCESS CONTROL - Non-admin denied audit_read
+    print("\n[Test 10] ACCESS CONTROL: sys_audit_read enforces uid==0 check")
     q.cmd("logout\n")
     time.sleep(2)
     q.read()
@@ -412,7 +412,7 @@ def test_security():
     print()
     
     if passed == 10:
-        print("✓✓✓ FULL MARKS - ALL REAL TESTS PASSED ✓✓✓\n")
+        print("ALL TESTS PASSED\n")
         return True
     else:
         print(f"✗ {failed} TESTS FAILED\n")
