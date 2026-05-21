@@ -6,6 +6,7 @@
 #include "proc.h"
 #include "defs.h"
 #include "syscall.h"
+#include "auth.h"
 
 struct spinlock tickslock;
 uint ticks;
@@ -16,6 +17,35 @@ extern char trampoline[], uservec[];
 void kernelvec();
 
 extern int devintr();
+
+// =============================================================
+// TRAP PRETTY PRINTING — Map trap numbers to human-readable names
+// WHY: Raw scause values are opaque; descriptive names make the
+// console output immediately actionable for diagnostics
+// =============================================================
+static const char *
+scause_name(uint64 scause)
+{
+  switch(scause) {
+    case 0:  return "Instruction address misaligned";
+    case 1:  return "Instruction access fault";
+    case 2:  return "Illegal instruction";
+    case 3:  return "Breakpoint";
+    case 4:  return "Load address misaligned";
+    case 5:  return "Load access fault";
+    case 6:  return "Store/AMO address misaligned";
+    case 7:  return "Store/AMO access fault";
+    case 8:  return "Environment call (syscall)";
+    case 9:  return "Supervisor software interrupt";
+    case 10: return "Reserved";
+    case 11: return "Machine software interrupt";
+    case 12: return "Supervisor timer interrupt";
+    case 13: return "Reserved";
+    case 14: return "Machine timer interrupt";
+    case 15: return "Supervisor external interrupt";
+    default: return "Unknown";
+  }
+}
 
 void
 trapinit(void)
@@ -73,8 +103,15 @@ usertrap(void)
             vmfault(p->pagetable, r_stval(), (r_scause() == 13)? 1 : 0) != 0) {
     // page fault on lazily-allocated page
   } else {
-    printf("usertrap(): unexpected scause 0x%lx pid=%d\n", r_scause(), p->pid);
-    printf("            sepc=0x%lx stval=0x%lx\n", r_sepc(), r_stval());
+    // === TRAP PRETTY PRINTING ===
+    // Print human-readable trap name, PID, UID, EIP for diagnostics
+    uint64 scause = r_scause();
+    uint64 sepc = r_sepc();
+    const char *trap_name = scause_name(scause);
+    
+    printf("TRAP [%s] (0x%lx): PID=%d UID=%d EIP=0x%lx STVAL=0x%lx\n",
+           trap_name, scause, p->pid, p->creds.uid, sepc, r_stval());
+    
     setkilled(p);
   }
 

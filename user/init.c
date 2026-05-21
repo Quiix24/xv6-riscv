@@ -88,7 +88,7 @@ main(void)
     // === AUTHENTICATION GATE ===
     // Loop ensures the shell is only spawned post-authentication
     for (;;) {
-        int auth_uid = do_login();  // Blocks until valid credentials
+        do_login();  // Blocks until valid credentials
 
         pid = fork();
         if (pid < 0) {
