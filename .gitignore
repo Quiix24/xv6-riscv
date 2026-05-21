@@ -2,7 +2,6 @@
 *.o
 *.d
 *.a
-kernel
 mkfs/mkfs
 user/_*
 fs.img
