@@ -89,10 +89,8 @@ main(void)
     // Loop ensures the shell is only spawned post-authentication
     for (;;) {
         int auth_uid = do_login();  // Blocks until valid credentials
-        printf("[INIT] Authenticated as uid=%d, about to fork\n", auth_uid);
 
         pid = fork();
-        printf("[INIT] fork() returned pid=%d\n", pid);
         if (pid < 0) {
             printf("init: fork failed\n");
             exit(1);
@@ -101,7 +99,6 @@ main(void)
         if (pid == 0) {
             // Child: the authenticated shell inherits parent's uid
             // because fork() copies struct proc including creds
-            printf("[CHILD] Child process, about to exec sh\n");
             exec("sh", sh_argv);
             printf("init: exec sh failed\n");
             exit(1);

@@ -6,9 +6,12 @@
 #include "defs.h"
 #include "param.h"
 #include "spinlock.h"
+#include "sleeplock.h"
 #include "proc.h"
 #include "auth.h"
 #include "syscall.h"
+#include "fs.h"
+#include "file.h"
 
 extern struct user_table g_users;
 
@@ -45,11 +48,8 @@ sys_login(void)
     // Initialize stack canary (simplified — production uses random value)
     p->stack_canary = 0xDEADBEEFCAFEBABE;
     
-    // DEBUG: Verify credential was set
-    int verify_uid = p->creds.uid;
     release(&p->lock);
 
-    printf("DEBUG: sys_login called for %s, pid=%d, setting uid=%d, verify=%d\n", username, p->pid, uid, verify_uid);
     audit_log_event(p->pid, uid, SYS_login, "SUCCESS:login");
     return uid;
 }
@@ -163,19 +163,84 @@ sys_passwd(void)
 }
 
 // =============================================================
-// sys_chmod — Placeholder for Phase 2
+// sys_chmod — Change file mode/permissions
+// Only owner or admin (uid=0) may change permissions
 // =============================================================
 uint64
 sys_chmod(void)
 {
-    return 0; // Success placeholder
+    char path[MAXPATH];
+    uint mode;
+    struct inode *ip;
+    struct proc *p = myproc();
+
+    if(argstr(0, path, MAXPATH) < 0)
+        return -1;
+    if(argint(1, (int*)&mode) < 0)
+        return -1;
+
+    begin_op();
+    if((ip = namei(path)) == 0){
+        end_op();
+        return -1;  // File not found
+    }
+
+    ilock(ip);
+
+    // Permission check: only owner or admin can change permissions
+    if(ip->uid != p->creds.uid && p->creds.uid != ROLE_ADMIN){
+        iunlockput(ip);
+        end_op();
+        return -1;  // Permission denied
+    }
+
+    ip->mode = mode;
+    iupdate(ip);
+
+    iunlockput(ip);
+    end_op();
+    return 0;  // Success
 }
 
 // =============================================================
-// sys_chown — Placeholder for Phase 2
+// sys_chown — Change file owner and group
+// Only owner or admin (uid=0) may change ownership
 // =============================================================
 uint64
 sys_chown(void)
 {
-    return 0; // Success placeholder
+    char path[MAXPATH];
+    int uid, gid;
+    struct inode *ip;
+    struct proc *p = myproc();
+
+    if(argstr(0, path, MAXPATH) < 0)
+        return -1;
+    if(argint(1, &uid) < 0)
+        return -1;
+    if(argint(2, &gid) < 0)
+        return -1;
+
+    begin_op();
+    if((ip = namei(path)) == 0){
+        end_op();
+        return -1;  // File not found
+    }
+
+    ilock(ip);
+
+    // Permission check: only owner or admin can change ownership
+    if(ip->uid != p->creds.uid && p->creds.uid != ROLE_ADMIN){
+        iunlockput(ip);
+        end_op();
+        return -1;  // Permission denied
+    }
+
+    ip->uid = uid;
+    ip->gid = gid;
+    iupdate(ip);
+
+    iunlockput(ip);
+    end_op();
+    return 0;  // Success
 }
