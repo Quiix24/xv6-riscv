@@ -22,7 +22,7 @@ main(int argc, char *argv[])
   10:	84ae                	mv	s1,a1
   }
 
-  // Simple: just convert 3 decimal digits to octal value
+  // Convert octal mode string to integer
   // chmod 755 /config -> mode=0755 (octal)
   int mode = 0;
   char *s = argv[1];
