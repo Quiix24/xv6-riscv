@@ -157,6 +157,7 @@ UPROGS=\
 	$U/_useradd\
 	$U/_userdel\
 	$U/_passwd\
+	$U/_logout\
 
 fs.img: mkfs/mkfs README $(UPROGS) medical_files/patient/records medical_files/dosage/insulin.log medical_files/device/config medical_files/audit/syscall.log
 	mkfs/mkfs fs.img README $(UPROGS) \
