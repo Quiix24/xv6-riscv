@@ -1,614 +1,340 @@
-# xv6-riscv Medical Device Security Extension
+#  xv6-riscv Medical Device Security
 
-A security-focused extension for the xv6-riscv operating system designed to simulate a protected medical wearable environment, specifically an insulin pump system.
-
-This project was developed as part of the Operating Systems Security course and focuses on implementing kernel-level protection mechanisms directly inside xv6.
-
-The system introduces:
-- User Authentication and RBAC
-- File Access Control
-- System Call Audit Logging
-
-All security enforcement happens entirely inside the kernel (Ring 0), preventing user-space applications from bypassing protections.
+**CCY4304 — Project 12**
+**Ahmed Mohamed (221003440) / Belal Walid (2210102080)**
+**Dr. Ayman Adel | Eng. Abdelrahman Soliman**
 
 ---
 
-# Academic Information
+##  What is This Project?
 
-## University
-Modern Academy for Engineering & Technology (MAET)
+This project turns the educational xv6-riscv operating system into a secure medical device OS. We added three major security layers on top of the vanilla kernel:
 
-## Course
-CCY4304 — Operating Systems Security
+1. **User Authentication (RBAC)** — you must log in before you can do anything
+2. **File Access Control (Unix Permissions)** — each file has an owner and permissions
+3. **Syscall Audit Log** — every security-relevant action is recorded in the kernel
 
-## Lecturer
-Dr. Ayman Adel
-
-## Teaching Assistant
-Eng. Abdelrahman Soliman
-
-## Students
-- Ahmed Mohamed — 221003440
-- Belal Walid — 2210102080
-
-## GitHub
-https://github.com/Quiix24
+All security logic lives in the kernel (Ring 0). User-space programs can never bypass it.
 
 ---
 
-# Project Goal
+##  Project Structure
 
-The purpose of this project is to transform the original xv6 teaching operating system into a more secure environment capable of protecting sensitive medical data and device configuration files.
-
-The project simulates a real-world medical wearable device where:
-- Patients can view their records
-- Doctors can manage dosage logs
-- Administrators maintain full system control
-- Every sensitive action is monitored and logged
-
----
-
-# System Architecture
-
-The project is divided into three major security layers:
-
-1. Authentication and RBAC
-2. File Access Control
-3. Audit Logging
-
-These layers work together to provide:
-- Authentication
-- Authorization
-- Accountability
-
-which form the AAA security model.
-
----
-
-# User Roles
-
-## ADMIN (UID 0)
-
-The administrator has unrestricted access to the system.
-
-### Capabilities
-- Access all files
-- Bypass permission checks
-- Read audit logs
-- Manage users
-- Change file ownership and permissions
+```
+xv6-riscv/
+├── kernel/
+│   ├── auth.h / auth.c       # Credential storage & password hashing
+│   ├── sysauth.c             # Login, useradd, userdel, passwd, whoami syscalls
+│   ├── audit.h / audit.c     # Ring buffer audit log
+│   ├── proc.h                # Extended with security fields (creds, stack_canary)
+│   ├── fs.h / fs.c           # Extended inodes with mode/uid/gid
+│   ├── file.h / file.c       # Permission checks (check_permission)
+│   ├── sysfile.c             # open() with permission enforcement
+│   ├── trap.c                # Audit hook before every security syscall
+│   ├── syscall.c             # Dispatch table (8 new syscalls registered)
+│   └── defs.h                # Function prototypes for auth & audit
+├── user/
+│   ├── init.c                # Login gate before shell spawns
+│   ├── login.c               # Login user program
+│   ├── sectest.c             # Automated test suite (12 test cases)
+│   ├── usys.pl               # RISC-V syscall stubs (8 new entries)
+│   └── user.h                # Syscall declarations for user programs
+└── screenshoots/
+    ├── phase-1/              # Screenshots 11–20
+    ├── phase-2/              # Screenshots 21–31
+    ├── phase-3/              # Screenshots 32–36
+    └── bonus/                # Screenshots 37–38
+```
 
 ---
 
-## DOCTOR (UID 2)
+##  Phase 1 — User Authentication (RBAC)
 
-The doctor role is designed for medical staff.
+Every process must prove its identity before the shell starts. Credentials are stored **inside the kernel** (`struct proc`) — invisible to user space. No login, no shell. Period.
 
-### Capabilities
-- Read patient records
-- Read and write insulin dosage logs
+### How the login flow works
 
-### Restrictions
-- Cannot access device configuration
-- Cannot access audit logs
+![Authentication Flow Architecture](screenshoots/phase-1/11.png)
+
+> The `login.c` user program can only pass a username and password string — it never sees the hash table and never makes the auth decision. The kernel's `sys_login()` calls `auth_verify()` in Ring 0, sets `proc->creds`, and logs the result. User space trusts nothing; kernel decides everything.
 
 ---
 
-## PATIENT (UID 1)
+### `struct proc` — Extended with security fields
 
-The patient role has limited read-only access.
+![struct proc with security fields](screenshoots/phase-1/12.png)
 
-### Capabilities
-- Read personal records
-- Read insulin dosage information
-
-### Restrictions
-- Cannot modify dosage logs
-- Cannot access device configuration
-- Cannot read audit logs
+> `struct proc_creds creds` and `uint64 stack_canary` are appended at the **end** of `struct proc`. Adding at the end means existing field offsets are untouched — the scheduler, trap handler, and memory manager all access `struct proc` by name and would silently break if offsets shifted. The stack canary (`0xDEADBEEFCAFEBABE`) detects buffer overflows in new syscall handlers.
 
 ---
 
-# Development Environment
+### `kernel/auth.h` — Credential storage structures
 
-The project was developed using:
+![auth.h credential structures](screenshoots/phase-1/13.png)
 
-- Kali Linux
-- QEMU Emulator
-- RISC-V 64-bit Architecture
-- ANSI C
-- xv6-riscv
+> `struct passwd_entry` holds username, password hash, uid, gid, role, and a valid flag — mirroring `/etc/passwd`. A `spinlock` protects the table because multiple processes could try to log in concurrently on multi-core RISC-V. Without it, two processes could both read "user not found" at the same time and both try to add the same user — a classic race condition.
 
 ---
 
-# Boot and Authentication Flow
+### `kernel/auth.c` — Password hashing (djb2)
 
-The original xv6 system launches a shell immediately after boot.
+![hash_password using djb2](screenshoots/phase-1/14.png)
 
-This project changes that behavior completely.
-
-The modified init process now:
-1. Displays a login prompt
-2. Requires valid credentials
-3. Verifies credentials inside the kernel
-4. Launches the shell only after successful authentication
-
-This guarantees there is no path to the shell without passing through the security layer.
+> The djb2 polynomial hash (`h = h * 33 + c`) is used because xv6 has no crypto library. This is a **known limitation** — production medical systems must use bcrypt or Argon2 with a per-user random salt to prevent rainbow table attacks.
 
 ---
 
-# Phase 1 — Authentication and RBAC
+### `kernel/sysauth.c` — `sys_login()` syscall
 
-## Overview
+![sys_login implementation](screenshoots/phase-1/15.png)
 
-The first phase implements user authentication and role-based access control.
-
-Instead of trusting user applications, the kernel itself verifies identities and stores credentials securely inside the process structure.
-
-The authentication system ensures:
-- User-space cannot forge identities
-- Permissions cannot be modified by applications
-- Every process has a verified role
+> `sys_login()` uses `argstr()` to safely copy the username/password from user-space memory. Direct pointer dereference would be a security hole — a malicious process could pass a kernel address. `argstr()` validates the pointer lies within the process's own mapped pages before copying. On success, it atomically sets `proc->creds` under the process lock.
 
 ---
 
-## Authentication Flow
+### `kernel/syscall.c` — 8 new syscalls registered
 
-The login process works as follows:
+![syscall dispatch table](screenshoots/phase-1/16.png)
 
-1. User enters username and password
-2. login() syscall is triggered
-3. Kernel validates user memory safely
-4. auth_verify() checks credentials
-5. Process credentials are stored in struct proc
-6. Shell launches only after successful login
+> Eight new handlers (`sys_login`, `sys_useradd`, `sys_userdel`, `sys_passwd`, `sys_whoami`, `sys_chmod`, `sys_chown`, `sys_audit_read`) are added to the dispatch table. This connects the syscall number from register `a7` to the actual handler function.
 
 ---
 
-## Process Security Extensions
+### `user/usys.pl` — RISC-V assembly stubs
 
-The project extends struct proc by adding:
-- User credentials
-- Authentication status
-- Stack canary protection
+![usys.pl syscall stubs](screenshoots/phase-1/17.png)
 
-The stack canary helps detect memory corruption attacks inside new syscall handlers.
+> Eight new `entry()` calls generate RISC-V assembly stubs. Each stub loads the syscall number into register `a7` and executes the `ecall` instruction — the bridge that turns a normal C function call into a Ring 3 → Ring 0 transition.
 
 ---
 
-## Password Hashing
+### `user/user.h` — Syscall declarations
 
-Passwords are hashed using the djb2 hashing algorithm.
+![user.h function declarations](screenshoots/phase-1/18.png)
 
-### Why djb2 was used
-- xv6 does not contain advanced crypto libraries
-- Lightweight and easy to integrate
-- Suitable for educational purposes
-
-### Known limitation
-- djb2 is not secure enough for production systems
-
-### Production replacement
-- bcrypt
-- Argon2
-- Per-user random salts
+> C function declarations for all 8 new syscalls. Without these, user programs like `init.c` and `sectest.c` would not know the function signatures and the compiler would reject calls to them.
 
 ---
 
-## New Security Syscalls
+### `user/init.c` — Login gate before shell
 
-The project introduces several new syscalls:
+![init.c login gate](screenshoots/phase-1/19.png)
 
-- login()
-- whoami()
-- useradd()
-- userdel()
-- passwd()
-- chmod()
-- chown()
-- audit_read()
-
-These required modifications in:
-- syscall.h
-- syscall.c
-- usys.pl
-- user.h
-
-The syscall stubs generated by usys.pl allow user-space programs to enter kernel mode through the RISC-V ecall instruction.
+> `do_login()` loops up to 3 times and only returns on success. The shell (`sh`) is forked **only after** authentication passes. Because `init` is PID 1 — the parent of every process in xv6 — there is no code path that spawns a shell without first passing through `auth_verify()`. An attacker cannot bypass it without a kernel exploit.
 
 ---
 
-# Phase 2 — File Access Control
+###  Live Demo — Boot → Login → Shell
 
-## Overview
+![Live terminal: boot and login](screenshoots/phase-1/20.png)
 
-The second phase introduces UNIX-style file permissions directly into xv6.
-
-The system stores:
-- mode
-- uid
-- gid
-
-inside both:
-- On-disk inodes
-- In-memory inodes
-
-This allows permissions to survive system reboots while remaining efficient during runtime.
+> The system boots and immediately shows `xv6 Medical Device Security System / Authorized Access Only`. A wrong password is rejected: `Authentication failed. 2 attempt(s) remaining.` The correct password succeeds: `Welcome, admin! Role: ADMIN`. Running `whoami` confirms: `Current UID: 0 (Role: ADMIN)`. **Phase 1 is fully operational.**
 
 ---
 
-# Protected Medical Files
+##  Phase 2 — File Access Control (Unix Permissions)
 
-## /patient/records
+Phase 2 enforces **who can read, write, and execute each file**. Permissions are stored on-disk in inodes (ACL) and compared against the authenticated uid/gid from Phase 1 (Capability List in RAM). All checks happen inside the kernel **before any data is transferred**.
 
-### Purpose
-Stores patient medical records.
+### Architecture — ACL on Disk + Capability List in RAM
 
-### Permissions
-- Patient: Read
-- Doctor: Read
-- Admin: Full Access
+![Hybrid security architecture](screenshoots/phase-2/21.png)
+
+> On-disk ACL (`struct dinode`: mode/uid/gid) provides **persistence** — permissions survive reboots. In-RAM capability (`proc->creds.uid` from Phase 1 login) provides **performance** — no disk I/O per access check. The `check_permission()` function combines both: reads inode permissions (loaded by `ilock`) and compares against `proc->creds`. This exactly matches the "ACL on disk + Capability List in RAM" model.
 
 ---
 
-## /dosage/insulin.log
+### `kernel/fs.h` — Extended `struct dinode`
 
-### Purpose
-Stores insulin dosage information.
+![fs.h with mode/uid/gid](screenshoots/phase-2/22.png)
 
-### Permissions
-- Doctor: Read/Write
-- Patient: Read
-- Admin: Full Access
+> Three `uint` fields (`mode`, `uid`, `gid`) added after the existing `addrs[]` array in `struct dinode`. UNIX permission macros `S_IRUSR` (0400) through `S_IXOTH` (0001) defined below. Using `uint` ensures 4-byte alignment with no silent padding holes — mixing `short` and `uint` would corrupt the inode layout on disk.
 
 ---
 
-## /device/config
+### `kernel/file.h` — Extended in-memory `struct inode`
 
-### Purpose
-Stores device configuration.
+![file.h with mode/uid/gid](screenshoots/phase-2/23.png)
 
-### Permissions
-- Admin only
+> The same three fields added to the in-memory inode cache. When `ilock()` loads a file from disk, it copies `mode/uid/gid` into this fast in-memory copy. `check_permission()` reads from here — never directly from disk during permission checks.
 
 ---
 
-## /audit/syscall.log
+### `kernel/fs.c` — Loading permissions from disk
 
-### Purpose
-Stores security audit information.
+![ilock loading permissions](screenshoots/phase-2/24.png)
 
-### Permissions
-- Admin read-only access
+> Three lines inside the `ip->valid == 0` block copy `dip->mode/uid/gid` into the in-memory inode. This block only runs on a cache miss (first time the inode is loaded from disk), so permissions are always populated before any caller can use the inode.
 
 ---
 
-# Permission Enforcement
+### `kernel/fs.c` — Persisting permissions to disk
 
-## Centralized Security Model
+![iupdate persisting permissions](screenshoots/phase-2/25.png)
 
-All permission checks are handled by a single kernel function:
-
-check_permission()
-
-This function determines:
-- Whether the caller owns the file
-- Whether group permissions apply
-- Whether other permissions apply
-- Whether admin bypass is allowed
-
-Using one centralized function reduces:
-- Duplicate logic
-- Security inconsistencies
-- Maintenance complexity
+> Three lines in `iupdate()` write the in-memory inode back to the on-disk dinode. Without these, `chmod()` and `chown()` would update RAM but the changes would be lost on reboot — the disk copy would still have the old permissions.
 
 ---
 
-## Security Enforcement Inside Ring 0
+### `kernel/file.c` — `check_permission()` — The single enforcement point
 
-Permission validation occurs before:
-- Opening files
-- Reading files
-- Writing files
+![check_permission function](screenshoots/phase-2/26.png)
 
-This guarantees unauthorized users never receive even partial data.
-
-### Examples
-- fileread() validates before readi()
-- sys_open() validates before file descriptor allocation
+> Checks in order: (1) `caller_uid == 0` → ADMIN bypass, (2) owner bits, (3) group bits, (4) other bits. Returns 0 (allow) or -1 (deny). **Centralizing this in one function** means a single fix if a vulnerability is found. Duplicating the logic across `fileread`, `filewrite`, `sys_open`, and `sys_exec` would risk one copy being patched while another isn't.
 
 ---
 
-# Real Access Results
+### `kernel/file.c` — `fileread()` with permission check
 
-## Doctor Access
+![fileread with permission enforcement](screenshoots/phase-2/27.png)
 
-### Allowed
-- Read patient records
-- Read insulin logs
-- Write insulin logs
-
-### Denied
-- Device configuration access
+> The permission check happens **before** `readi()` — denied users never see any bytes, not even partial data. The `ilock/iunlock` pair is balanced on both the denial path and the success path, preventing deadlock.
 
 ---
 
-## Patient Access
+### `kernel/sysfile.c` — `sys_open()` with permission check
 
-### Allowed
-- Read personal records
-- Read insulin dosage information
+![sys_open permission check](screenshoots/phase-2/28.png)
 
-### Denied
-- Configuration access
-- Writing dosage logs
+> Checking at `open()` time means a process that cannot open a file never gets a file descriptor. This also prevents **file descriptor passing attacks** — where a privileged process opens a file and passes the fd to an unprivileged one.
 
 ---
 
-## Admin Access
+###  Live Demo — Doctor Role Access Test
 
-### Allowed
-- Full unrestricted system access
+![Doctor role file access test](screenshoots/phase-2/29.png)
 
----
-
-# Phase 3 — System Call Audit Logging
-
-## Overview
-
-The third phase introduces accountability through audit logging.
-
-Every important security-related syscall attempt is recorded inside a kernel-managed ring buffer.
-
-### Logged events include
-- Authentication attempts
-- Permission denials
-- File access attempts
-- Administrative actions
+> Doctor (uid=2, gid=2) logs in. `cat records` → ✅ allowed (gid matches). `cat insulin.log` → ✅ allowed (doctor owns it). `cat config` → ❌ **CORRECTLY DENIED** (config is uid=0 mode=0600, doctor has no access).
 
 ---
 
-# Audit Log Data
+###  Live Demo — Admin Role Access Test
 
-Each audit entry stores:
-- Process ID
-- User ID
-- Syscall name
-- Timestamp
-- Status message
+![Admin role file access test](screenshoots/phase-2/30.png)
 
-This creates a complete security trail for forensic analysis.
+> Admin (uid=0) can read **all three files** regardless of ownership — the `uid==0` bypass in `check_permission()` returns 0 immediately. This is the `CAP_DAC_OVERRIDE` equivalent behavior.
 
 ---
 
-# Why Logging Happens Before syscall()
+###  Live Demo — Patient Role Access Test
 
-The audit hook is placed inside usertrap() before syscall() executes.
+![Patient role file access test](screenshoots/phase-2/31.png)
 
-### Advantages
-- Every attempt is recorded
-- Failed syscalls are still logged
-- Crashes and early exits cannot bypass logging
-
-This ensures no security event occurs silently.
+> Patient (uid=1, gid=1): `cat records` → ✅ (patient owns it, mode=0440). `cat insulin.log` → ✅ (gid=1 matches, mode=0640 group-read). `cat config` → ❌ **CORRECTLY DENIED**. Patient can see their own records and dosage but cannot touch device configuration.
 
 ---
 
-# Ring Buffer Design
+##  Phase 3 — Syscall Audit Log
 
-The audit system uses a circular buffer containing 256 entries.
+Phase 3 is the **accountability** layer — the third pillar of the AAA security model (Authentication, Authorization, Accountability). Every security-relevant syscall is recorded in a kernel ring buffer. Only the admin can read the log. Even if an attacker succeeds, their actions are recorded and **cannot be erased from user space**.
 
-### Advantages
-- Constant memory usage
-- No blocking behavior
-- Automatic overwrite of old entries
-- Safe concurrent access using spinlocks
+### Audit Log Architecture
 
----
+![Audit log architecture](screenshoots/phase-3/32.png)
 
-# Automated Security Testing
-
-The project includes a complete automated testing suite called:
-
-sectest
-
-### The suite validates
-- Authentication logic
-- File permissions
-- RBAC enforcement
-- Audit log protection
-- User privilege restrictions
+> Logging at the **trap level** (before syscall dispatch) means every attempt is recorded — even calls the handler immediately rejects. A patient calling `audit_read()` gets both `EPERM` returned AND an audit entry recording the attempt. The ring buffer lives in kernel BSS (not user-accessible RAM).
 
 ---
 
-# Test Results
+### `kernel/audit.c` — Syscall name mapping
 
-## Total Test Cases
-12
+![syscall_names array](screenshoots/phase-3/33.png)
 
-## Passed
-9
-
-## Failed
-3
+> A static array maps every syscall number to its name string. A compliance report showing `[SYS_22] DENIED` is useless. One showing `[login] FAIL:bad_credentials pid=5 uid=-1` is immediately actionable. Named mappings turn raw numbers into forensic evidence.
 
 ---
 
-## Successful Tests
+### `kernel/audit.h` — Ring buffer structures
 
-The following tests passed successfully:
-- Admin login
-- Invalid password rejection
-- Patient login
-- Permission denial enforcement
-- Audit log access restriction
-- RBAC privilege enforcement
+![audit ring buffer structures](screenshoots/phase-3/34.png)
+
+> `struct audit_entry` stores pid, uid, syscall name, message, timestamp, and valid flag. `struct audit_ring` wraps 256 entries with head/tail pointers and a spinlock. 256 entries × ~200 bytes ≈ 50KB of kernel memory — acceptable for a medical device. The **ring (circular) design** means the buffer never fills up and blocks: oldest entries are overwritten. The spinlock allows safe calls from interrupt context.
 
 ---
 
-## Failed Tests
+### `kernel/defs.h` — Function prototypes
 
-The failed tests were caused by a file initialization timing issue.
+![defs.h new prototypes](screenshoots/phase-3/35.png)
 
-### Problem
-fsinit_security() applies permissions before files are created by mkfs.
-
-### Important
-- The permission logic itself works correctly
-- Live runtime tests confirmed proper behavior
+> Prototypes for `auth.c` and `audit.c` added to `defs.h`, which is included by virtually every kernel file. Any kernel file can now call `audit_log_event()` or `auth_verify()` without extra includes — keeping the include graph clean.
 
 ---
 
-# Security Principles Applied
+### `kernel/trap.c` — Audit hook in `usertrap()`
 
-## Principle of Least Privilege
+![trap.c audit hook](screenshoots/phase-3/36.png)
 
-Each role only receives the minimum permissions required.
-
-### Examples
-- Patients cannot modify logs
-- Doctors cannot access configuration files
+> Lines added in `usertrap()`: after confirming `r_scause()==8` (RISC-V ecall) and **before** calling `syscall()`, if the syscall number matches any security-relevant call (`SYS_open`, `SYS_read`, `SYS_login`, `SYS_chmod`, etc.), `audit_log_event()` is called. Logging **before** the handler runs means even a panicking handler leaves an audit trail.
 
 ---
 
-## Defense in Depth
+##  Bonus — Automated Test Suite (sectest)
 
-The project combines multiple independent security layers:
-- Authentication
-- File permissions
-- Audit logging
+### `user/sectest.c` — All 12 test cases
 
-Even if one layer fails, others still protect the system.
+![sectest main() with all 12 test calls](screenshoots/bonus/37.png)
 
----
-
-## Ring 0 Enforcement
-
-All security decisions occur inside kernel mode.
-
-User-space applications cannot:
-- Forge credentials
-- Modify permissions
-- Bypass access checks
+> The `sectest` program calls all 12 test functions in sequence: TC01–TC03 test authentication, TC04–TC08 test file permissions for all three roles, TC09–TC10 test audit log access control, TC11–TC12 test RBAC privilege restriction. Manual testing of 12 scenarios across 3 roles would be error-prone and hard to reproduce — the automated suite provides repeatable, documented proof of each security property.
 
 ---
 
-## Accountability
+###  Live Demo — sectest Results
 
-Every sensitive action is logged with:
-- User identity
-- Syscall name
-- Timestamp
-- Result
+![sectest running all 12 test cases](screenshoots/bonus/38.png)
 
----
-
-## Single Point of Truth
-
-All permission checks use:
-- check_permission()
-
-This simplifies debugging and security patching.
+> **Result: 9/12 PASS, 3 FAIL**
+>
+> **Passing (9):** TC01 Admin login ✅, TC02 Bad password denied ✅, TC03 Patient login ✅, TC04 Patient write insulin denied ✅, TC07 Patient config denied ✅, TC08 Doctor config denied ✅, TC09 Patient `audit_read` EPERM ✅, TC10 Admin `audit_read` succeeds ✅, TC11 Patient `useradd` denied ✅
+>
+> **Failing (3 — TC05, TC06, TC12):** These fail because `fsinit_security()` sets permissions on files before `mkfs` creates them in the test environment. The permission **logic is correct** (proven by the live terminal tests in screenshots 29–31). Fix: ensure files exist before `fsinit_security()` runs.
 
 ---
 
-# Known Limitations
+##  New Syscalls Summary
 
-## Password Visibility
-
-### Current Issue
-Passwords are visible during typing.
-
-### Production Fix
-Disable terminal echo using termios.
-
----
-
-## Weak Password Hashing
-
-### Current Issue
-djb2 is not cryptographically secure.
-
-### Production Fix
-Use bcrypt or Argon2.
+| Syscall | Number | Description |
+|---|---|---|
+| `login(user, pass)` | SYS_22 | Authenticate and set `proc->creds` |
+| `useradd(user, pass, role)` | SYS_23 | Add a new user (admin only) |
+| `userdel(user)` | SYS_24 | Remove a user (admin only) |
+| `passwd(user, newpass)` | SYS_25 | Change password |
+| `whoami()` | SYS_26 | Print current uid and role |
+| `chmod(path, mode)` | SYS_27 | Change file permissions |
+| `chown(path, uid, gid)` | SYS_28 | Change file ownership |
+| `audit_read(buf, n)` | SYS_29 | Read audit log (admin only) |
 
 ---
 
-## No Login Rate Limiting
+##  Roles
 
-### Current Issue
-Unlimited rapid login attempts.
-
-### Production Fix
-Add exponential backoff delays.
-
----
-
-## Fixed Stack Canary
-
-### Current Issue
-Same canary value for all sessions.
-
-### Production Fix
-Randomize canaries per process.
+| Role | UID | Access |
+|---|---|---|
+| Admin | 0 | Full access to everything (CAP_DAC_OVERRIDE) |
+| Patient | 1 | Own records + own dosage (read-only) |
+| Doctor | 2 | Patient records + device logs |
 
 ---
 
-## No ASLR
+##  Running the Project
 
-### Current Issue
-Predictable memory layout.
+```bash
+# Clone and build
+git clone https://github.com/Quiix24/xv6-riscv
+cd xv6-riscv
+make qemu
 
-### Production Fix
-Randomize program load addresses.
+# At the login prompt
+Username: admin
+Password: admin123
 
----
-
-## Non-Persistent Audit Logs
-
-### Current Issue
-Logs are lost after reboot.
-
-### Production Fix
-Flush logs asynchronously to disk.
+# Run the automated test suite
+$ sectest
+```
 
 ---
 
-# Future Improvements
+##  Known Limitations
 
-The project can likely achieve full marks with two small improvements.
-
-## Fix File Initialization Order
-
-Ensure protected files exist before:
-- fsinit_security() applies permissions
-
-This would fix:
-- TC05
-- TC06
-- TC12
-
----
-
-## Randomize Stack Canaries
-
-Replace the fixed canary with:
-- Per-process randomized values
-
-This would improve resistance against memory corruption attacks.
-
----
-
-# Conclusion
-
-This project demonstrates how xv6 can be transformed into a security-oriented operating system capable of protecting sensitive medical device data.
-
-The implementation successfully combines:
-- Authentication
-- Role-based access control
-- File permission enforcement
-- Audit logging
-
-directly inside the kernel.
-
-The result is a realistic educational example of how operating system security concepts can be applied to embedded medical systems using xv6 and RISC-V architecture.
+- Password hashing uses **djb2** (not bcrypt/Argon2) — acceptable for an educational kernel, not for production.
+- No per-user salt — susceptible to rainbow table attacks.
+- 3 test cases (TC05, TC06, TC12) fail due to a filesystem init ordering issue in the test environment only. Core permission logic is correct.
