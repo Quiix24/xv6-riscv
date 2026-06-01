@@ -49,7 +49,7 @@ class QEMU(object):
     def save_output(self):
       try:
         with open("test-xv6.out", "w") as f:
-            f.write(self.out)
+            f.write(self.output)
             f.close()
       except OSError as e:
         print("Provided a bad results path. Error:", e)     
@@ -57,8 +57,11 @@ class QEMU(object):
     def cmd(self, c):
         if isinstance(c, str):
             c = c.encode('utf-8')
-        self.proc.stdin.write(c)
-        self.proc.stdin.flush()
+        stdin = self.proc.stdin
+        if stdin is None:
+            raise RuntimeError("QEMU stdin is not available")
+        stdin.write(c)
+        stdin.flush()
         
     def crash(self):
         ps = run(['ps', '-opid', '--no-headers', '--ppid', str(self.proc.pid)], stdout=subprocess.PIPE, encoding='utf8')
@@ -73,7 +76,10 @@ class QEMU(object):
         self.proc.terminate()
 
     def read(self):
-        buf = os.read(self.proc.stdout.fileno(), 4096)
+        stdout = self.proc.stdout
+        if stdout is None:
+            raise RuntimeError("QEMU stdout is not available")
+        buf = os.read(stdout.fileno(), 4096)
         self.outbytes.extend(buf)
         self.output = self.outbytes.decode("utf-8", "replace")
 
